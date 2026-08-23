@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>韧竹小站</title>
+<style>
+/* ============================================================
+   全局变量
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --cream: #fefaf4;
+  --peach: #fdf3ea;
+  --green-soft: #8db88a;
+  --green-mid: #6a9a6a;
+  --green-dark: #4a7a4a;
+  --pink: #f0c0c0;
+  --gold: #e0c878;
+  --text: #4a4038;
+  --text-dim: #9a8e80;
+  --text-light: #b8a898;
+  --border: rgba(0,0,0,0.06);
+  --card-bg: rgba(255,255,255,0.7);
+  --shadow: 0 4px 20px rgba(0,0,0,0.04);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+  background: linear-gradient(170deg, #fefaf4 0%, #fdf3ea 25%, #faf5ee 50%, #f4f2ea 75%, #fefaf4 100%);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   小花装饰
+   ============================================================ */
+.flowers-bg {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+.flower {
+  position: absolute; font-size: 15px; opacity: 0.3;
+  animation: floatFlower 8s ease-in-out infinite;
+}
+.flower:nth-child(1) { top: 4%; left: 5%; animation-delay: 0s; font-size: 20px; }
+.flower:nth-child(2) { top: 10%; right: 8%; animation-delay: 1.2s; font-size: 14px; }
+.flower:nth-child(3) { top: 28%; left: 3%; animation-delay: 2.5s; font-size: 18px; }
+.flower:nth-child(4) { top: 42%; right: 5%; animation-delay: 0.8s; font-size: 22px; }
+.flower:nth-child(5) { top: 58%; left: 6%; animation-delay: 3s; font-size: 15px; }
+.flower:nth-child(6) { top: 72%; right: 10%; animation-delay: 1.8s; font-size: 19px; }
+.flower:nth-child(7) { top: 85%; left: 12%; animation-delay: 2.2s; font-size: 16px; }
+.flower:nth-child(8) { top: 18%; left: 16%; animation-delay: 3.5s; font-size: 13px; }
+.flower:nth-child(9) { top: 62%; right: 18%; animation-delay: 0.5s; font-size: 17px; }
+.flower:nth-child(10) { top: 48%; left: 24%; animation-delay: 2.8s; font-size: 14px; }
+.flower:nth-child(11) { top: 6%; right: 24%; animation-delay: 1.5s; font-size: 21px; }
+.flower:nth-child(12) { top: 90%; right: 28%; animation-delay: 3.2s; font-size: 15px; }
+
+@keyframes floatFlower {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-12px) rotate(3deg); }
+  50% { transform: translateY(-4px) rotate(-2deg); }
+  75% { transform: translateY(-16px) rotate(4deg); }
+}
+
+.container {
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto;
+  padding: 0 18px 40px;
+}
+
+/* ============================================================
+   导航栏
+   ============================================================ */
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 0; margin-bottom: 28px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  flex-wrap: wrap; gap: 10px;
+  animation: fadeDown 0.6s ease-out;
+}
+.nav .logo {
+  font-size: 22px; font-weight: 700; letter-spacing: 4px;
+  color: var(--green-mid);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 8px;
+}
+.nav .logo span { font-size: 24px; }
+.nav-links {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.nav-links a {
+  text-decoration: none; color: var(--text-dim);
+  font-size: 14px; letter-spacing: 2px; padding: 8px 16px;
+  border-radius: 10px; transition: all 0.25s;
+}
+.nav-links a:hover, .nav-links a.active {
+  color: var(--green-mid);
+  background: rgba(125,184,138,0.08);
+}
+
+/* ============================================================
+   通用卡片
+   ============================================================ */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
+}
+.card h2 {
+  font-size: 20px; color: var(--green-dark); letter-spacing: 3px;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+}
+
+/* ============================================================
+   首页 Hero
+   ============================================================ */
+.hero {
+  text-align: center; padding: 36px 24px 40px;
+  animation: fadeUp 0.8s ease-out;
+}
+.hero .bamboo-icon {
+  font-size: 56px; display: block; margin-bottom: 10px;
+  animation: pandaFloat 4s ease-in-out infinite;
+}
+@keyframes pandaFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.hero h1 {
+  font-size: 46px; font-weight: 700; letter-spacing: 10px;
+  background: linear-gradient(135deg, #6aaa7a 0%, #8dc89a 40%, #a8c870 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 6px rgba(100,160,120,0.2));
+  margin-bottom: 10px;
+}
+.hero .tagline {
+  font-size: 16px; color: var(--text-dim); letter-spacing: 4px;
+  margin-bottom: 4px;
+}
+.hero .sub-tagline {
+  font-size: 13px; color: var(--text-light); letter-spacing: 2px;
+  margin-bottom: 22px;
+}
+.hero .hero-cta {
+  display: inline-block; padding: 13px 32px; border-radius: 16px;
+  background: linear-gradient(135deg, #7db88a 0%, #6a9a6a 100%);
+  color: #fff; text-decoration: none;
+  font-size: 15px; letter-spacing: 3px;
+  box-shadow: 0 6px 20px rgba(106,154,106,0.28);
+  transition: all 0.3s;
+}
+.hero .hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(106,154,106,0.36);
+}
+
+/* ============================================================
+   智能体主视觉大卡
+   ============================================================ */
+.agent-hero {
+  margin-bottom: 28px;
+  animation: fadeUp 0.9s ease-out;
+}
+.agent-hero .card {
+  padding: 40px 36px;
+  position: relative; overflow: hidden;
+  border: 1px solid rgba(125,184,138,0.22);
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(247,250,244,0.8) 100%);
+}
+.agent-hero .card::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(125,184,138,0.14) 0%, transparent 70%);
+}
+.agent-hero .card::after {
+  content: ''; position: absolute; bottom: -70px; left: -50px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,192,192,0.12) 0%, transparent 70%);
+}
+.agent-hero-inner {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: auto 1fr; gap: 30px; align-items: center;
+}
+.agent-hero-icon {
+  font-size: 92px; line-height: 1;
+  animation: pandaFloat 4s ease-in-out infinite;
+  filter: drop-shadow(0 8px 20px rgba(106,154,106,0.2));
+}
+.agent-hero-title {
+  font-size: 30px; font-weight: 700; letter-spacing: 5px;
+  color: var(--green-dark); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.agent-hero-title .live-tag {
+  font-size: 11px; letter-spacing: 2px; font-weight: 500;
+  padding: 3px 10px; border-radius: 10px;
+  background: rgba(125,184,138,0.14); color: var(--green-mid);
+}
+.agent-hero-desc {
+  font-size: 15px; color: var(--text-dim); line-height: 1.9;
+  letter-spacing: 1.5px; margin-bottom: 16px; max-width: 520px;
+}
+.agent-hero-chips {
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.chip {
+  padding: 9px 16px; border-radius: 20px;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(125,184,138,0.22);
+  color: var(--green-mid); font-size: 13px; letter-spacing: 1px;
+  cursor: pointer; font-family: inherit;
+  transition: all 0.25s; -webkit-tap-highlight-color: transparent;
+}
+.chip:hover {
+  background: rgba(125,184,138,0.12);
+  border-color: rgba(125,184,138,0.4);
+  transform: translateY(-2px);
+}
+.agent-hero-cta {
+  display: inline-block; margin-top: 18px;
+  padding: 12px 30px; border-radius: 14px;
+  background: linear-gradient(135deg, #7db88a 0%, #6a9a6a 100%);
+  color: #fff; text-decoration: none;
+  font-size: 15px; letter-spacing: 3px;
+  box-shadow: 0 6px 20px rgba(106,154,106,0.28);
+  transition: all 0.3s;
+}
+.agent-hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(106,154,106,0.36);
+}
+
+/* ============================================================
+   引导区 "在这里，你可以……"
+   ============================================================ */
+.guide-section {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-bottom: 28px;
+  animation: fadeUp 1s ease-out;
+}
+.guide-card {
+  text-align: center; padding: 26px 18px;
+  transition: all 0.3s;
+}
+.guide-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+.guide-card .g-icon { font-size: 38px; margin-bottom: 10px; }
+.guide-card .g-title {
+  font-size: 15px; font-weight: 600; color: var(--green-mid);
+  letter-spacing: 2px; margin-bottom: 6px;
+}
+.guide-card .g-desc {
+  font-size: 12px; color: var(--text-dim); line-height: 1.7;
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   知识预览卡片
+   ============================================================ */
+.preview-section {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-bottom: 28px;
+  animation: fadeUp 1.2s ease-out;
+}
+.preview-card {
+  padding: 24px 20px; text-align: center;
+  text-decoration: none; color: var(--text);
+  transition: all 0.3s; display: block;
+}
+.preview-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+.preview-card .p-icon { font-size: 36px; margin-bottom: 10px; }
+.preview-card .p-title {
+  font-size: 15px; font-weight: 600; color: var(--green-mid);
+  letter-spacing: 2px; margin-bottom: 6px;
+}
+.preview-card .p-desc {
+  font-size: 12px; color: var(--text-dim); line-height: 1.6;
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   成长三阶段
+   ============================================================ */
+.stages-section {
+  margin-bottom: 28px;
+  animation: fadeUp 1.3s ease-out;
+}
+.stages-section .section-head {
+  text-align: center; font-size: 20px; color: var(--green-dark);
+  letter-spacing: 4px; margin-bottom: 18px;
+}
+.stages-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; position: relative;
+}
+.stage-item {
+  text-align: center; padding: 24px 16px;
+  transition: all 0.3s;
+}
+.stage-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+.stage-item .s-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+.stage-item .s-name {
+  font-size: 16px; font-weight: 700; color: var(--green-dark);
+  letter-spacing: 3px; margin-bottom: 6px;
+}
+.stage-item .s-desc {
+  font-size: 12px; color: var(--text-dim); line-height: 1.7; letter-spacing: 1px;
+}
+.stage-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  font-size: 22px; color: var(--green-soft); opacity: 0.6;
+}
+.stage-arrow.a1 { left: 32%; }
+.stage-arrow.a2 { left: 65%; }
+
+/* ============================================================
+   每日心语
+   ============================================================ */
+.daily-section {
+  margin-bottom: 28px;
+  animation: fadeUp 1.4s ease-out;
+}
+.daily-card {
+  text-align: center; padding: 28px 24px;
+  position: relative; overflow: hidden;
+}
+.daily-card::before {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(125,184,138,0.04);
+}
+.daily-card .daily-label {
+  font-size: 12px; color: var(--text-light); letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+.daily-card .daily-icon {
+  font-size: 28px; margin-bottom: 8px;
+  animation: quoteBounce 2s ease-in-out infinite;
+}
+@keyframes quoteBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.daily-card .daily-text {
+  font-size: 15px; line-height: 1.9; color: var(--text);
+  letter-spacing: 2px; max-width: 500px; margin: 0 auto;
+  transition: opacity 0.6s ease;
+}
+.daily-card .daily-refresh {
+  display: inline-block; margin-top: 12px;
+  padding: 6px 14px; border-radius: 10px;
+  background: rgba(125,184,138,0.06); border: 1px solid rgba(0,0,0,0.04);
+  color: var(--text-dim); cursor: pointer; font-size: 11px;
+  letter-spacing: 2px; transition: all 0.25s; font-family: inherit;
+}
+.daily-card .daily-refresh:hover {
+  background: rgba(125,184,138,0.14);
+  color: var(--green-mid);
+}
+
+/* ============================================================
+   底部
+   ============================================================ */
+.footer {
+  text-align: center; padding: 28px 0 8px;
+  border-top: 1px solid rgba(0,0,0,0.04);
+  animation: fadeUp 1.8s ease-out;
+}
+.footer .f-brand {
+  font-size: 13px; color: var(--green-mid); letter-spacing: 2px; font-weight: 500;
+  margin-bottom: 2px;
+}
+.footer .f-team {
+  font-size: 12px; color: var(--text-dim); letter-spacing: 2px;
+  margin-bottom: 2px;
+}
+.designer-mark {
+  position: fixed; bottom: 12px; left: 16px; z-index: 0;
+  font-size: 10px; color: var(--text-light);
+  opacity: 0.3; letter-spacing: 1px; pointer-events: none;
+}
+.footer .f-school {
+  font-size: 11px; color: var(--text-light); letter-spacing: 1px;
+}
+.teacher-entry {
+  display: inline-block; margin-top: 6px;
+  font-size: 13px; opacity: 0.25;
+  transition: opacity 0.3s; text-decoration: none;
+}
+.teacher-entry:hover { opacity: 0.65; }
+
+/* ============================================================
+   复制提示 toast
+   ============================================================ */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+  background: rgba(74,122,74,0.95); color: #fff;
+  padding: 10px 22px; border-radius: 24px;
+  font-size: 13px; letter-spacing: 2px; z-index: 2000;
+  opacity: 0; pointer-events: none;
+  transition: all 0.35s; box-shadow: 0 8px 28px rgba(74,122,74,0.3);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ============================================================
+   动画
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 768px) {
+  .hero { padding: 28px 16px 34px; }
+  .hero h1 { font-size: 36px; letter-spacing: 6px; }
+  .hero .tagline { font-size: 15px; }
+  .agent-hero .card { padding: 30px 22px; }
+  .agent-hero-inner { grid-template-columns: 1fr; gap: 18px; text-align: center; }
+  .agent-hero-icon { font-size: 72px; }
+  .agent-hero-title { justify-content: center; font-size: 25px; }
+  .agent-hero-desc { margin-left: auto; margin-right: auto; }
+  .agent-hero-chips { justify-content: center; }
+  .guide-section { grid-template-columns: 1fr; gap: 10px; }
+  .preview-section { grid-template-columns: 1fr; gap: 10px; }
+  .stages-row { grid-template-columns: 1fr; gap: 10px; }
+  .stage-arrow { display: none; }
+  .nav { padding: 14px 0; margin-bottom: 20px; }
+  .nav .logo { font-size: 18px; letter-spacing: 2px; }
+  .nav-links a { font-size: 12px; padding: 6px 10px; letter-spacing: 1px; }
+  .card { padding: 18px; border-radius: 14px; }
+  .card h2 { font-size: 17px; }
+  .daily-card .daily-text { font-size: 14px; }
+  .flower:nth-child(7), .flower:nth-child(8),
+  .flower:nth-child(11), .flower:nth-child(12) { display: none; }
+}
+
+@media (max-width: 640px) {
+  .hero h1 { font-size: 32px; letter-spacing: 4px; }
+  .hero .bamboo-icon { font-size: 48px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 小花装饰 -->
+<div class="flowers-bg">
+  <span class="flower">🌸</span><span class="flower">🌼</span><span class="flower">🌿</span>
+  <span class="flower">💮</span><span class="flower">🌺</span><span class="flower">🍃</span>
+  <span class="flower">🌷</span><span class="flower">✿</span><span class="flower">🌾</span>
+  <span class="flower">🌻</span><span class="flower">🪷</span><span class="flower">🌱</span>
+</div>
+
+<!-- 复制提示 -->
+<div class="toast" id="toast"></div>
+
+<div class="container">
+
+  <!-- ========== 导航栏 ========== -->
+  <nav class="nav">
+    <a href="index.html" class="logo"><span>🎋</span>韧竹小站</a>
+    <div class="nav-links">
+      <a href="index.html" class="active">首页</a>
+      <a href="knowledge.html">心理知识</a>
+      <a href="chat.html">和AI聊聊</a>
+      <a href="about.html">关于我们</a>
+    </div>
+  </nav>
+
+  <!-- ========== Hero ========== -->
+  <section class="hero">
+    <span class="bamboo-icon">🎋</span>
+    <h1>韧竹小站</h1>
+    <p class="tagline">陪伴每一次成长</p>
+    <p class="sub-tagline">从韧芽到韧竹，你并不孤单</p>
+    <a href="chat.html" class="hero-cta">🌿 去和韧小行聊聊</a>
+  </section>
+
+  <!-- ========== 智能体主视觉大卡 ========== -->
+  <section class="agent-hero">
+    <div class="card">
+      <div class="agent-hero-inner">
+        <div class="agent-hero-icon">🌿</div>
+        <div>
+          <div class="agent-hero-title">
+            韧 行
+            <span class="live-tag">● 随时在线</span>
+          </div>
+          <div class="agent-hero-desc">
+            一个懂你的 AI 成长伙伴。陪你聊聊最近的状态、一起学点心理学小方法，也愿意安静地听你说说心里话。
+          </div>
+          <div class="agent-hero-chips">
+            <button class="chip" onclick="copyGo('最近压力有点大，能陪我聊聊吗？')">压力有点大</button>
+            <button class="chip" onclick="copyGo('和室友闹矛盾了，心里堵得慌')">和室友闹矛盾</button>
+            <button class="chip" onclick="copyGo('学不进去，总是拖延怎么办？')">学不进去</button>
+            <button class="chip" onclick="copyGo('对未来很迷茫，不知道该怎么办')">对未来迷茫</button>
+          </div>
+          <a href="chat.html" class="agent-hero-cta">去找韧小行聊聊 →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 引导区：在这里，你可以…… ========== -->
+  <section class="guide-section">
+    <div class="card guide-card">
+      <div class="g-icon">📖</div>
+      <div class="g-title">了解心理小知识</div>
+      <div class="g-desc">用轻松的方式，认识情绪、关系和自己</div>
+    </div>
+    <div class="card guide-card">
+      <div class="g-icon">💬</div>
+      <div class="g-title">和AI伙伴聊聊天</div>
+      <div class="g-desc">一个愿意倾听的朋友，随时都在</div>
+    </div>
+    <div class="card guide-card">
+      <div class="g-icon">🌱</div>
+      <div class="g-title">发现成长的力量</div>
+      <div class="g-desc">每个小改变，都值得被看见</div>
+    </div>
+  </section>
+
+  <!-- ========== 知识预览 ========== -->
+  <section class="preview-section">
+    <a href="knowledge.html#emotion" class="card preview-card">
+      <div class="p-icon">💭</div>
+      <div class="p-title">情绪来了怎么办？</div>
+      <div class="p-desc">认识你的情绪朋友，学会和它相处</div>
+    </a>
+    <a href="knowledge.html#cognition" class="card preview-card">
+      <div class="p-icon">🔄</div>
+      <div class="p-title">换个角度看问题</div>
+      <div class="p-desc">想法变了，感受也就变了</div>
+    </a>
+    <a href="knowledge.html#behavior" class="card preview-card">
+      <div class="p-icon">🌱</div>
+      <div class="p-title">小行动带来大改变</div>
+      <div class="p-desc">从一个微小的习惯开始</div>
+    </a>
+  </section>
+
+  <!-- ========== 成长三阶段 ========== -->
+  <section class="stages-section">
+    <div class="section-head">🌱 成长，是一段慢慢扎根的旅程</div>
+    <div class="stages-row">
+      <span class="stage-arrow a1">→</span>
+      <span class="stage-arrow a2">→</span>
+      <div class="card stage-item">
+        <span class="s-icon">🌱</span>
+        <div class="s-name">韧芽</div>
+        <div class="s-desc">刚开始，带着一点点忐忑，也有无限可能</div>
+      </div>
+      <div class="card stage-item">
+        <span class="s-icon">🌿</span>
+        <div class="s-name">韧苗</div>
+        <div class="s-desc">慢慢长出枝叶，每一次尝试都在扎根</div>
+      </div>
+      <div class="card stage-item">
+        <span class="s-icon">🎋</span>
+        <div class="s-name">韧竹</div>
+        <div class="s-desc">风雨来了也弯而不折，越挫越韧</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 每日心语 ========== -->
+  <section class="daily-section">
+    <div class="card daily-card">
+      <div class="daily-label">· 每日心语 ·</div>
+      <div class="daily-icon" id="dailyIcon">🌱</div>
+      <div class="daily-text" id="dailyText"></div>
+      <button class="daily-refresh" onclick="refreshDaily()">🔄 换一句</button>
+    </div>
+  </section>
+
+  <!-- ========== 底部 ========== -->
+  <footer class="footer">
+    <div class="f-brand">韧竹小站</div>
+    <div class="f-team">韧心计划 · 北海职业学院心理健康教育团队</div>
+    <div class="f-school">北海职业学院</div>
+    <a href="teacher.html" class="teacher-entry" title="教师入口">🔑</a>
+    <div class="designer-mark">design by yulinlin</div>
+  </footer>
+</div>
+
+<script>
+// ================================================================
+// 复制 + 跳转
+// ================================================================
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+}
+
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){
+      showToast('✓ 已复制，去粘贴给韧小行吧');
+    }, function(){ fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); showToast('✓ 已复制，去粘贴给韧小行吧'); }
+  catch(e) { showToast('已复制：' + text); }
+  document.body.removeChild(ta);
+}
+
+function copyGo(text) {
+  try { localStorage.setItem('rzxz_pending', text); } catch(e) {}
+  copyText(text);
+  setTimeout(function(){ location.href = 'chat.html'; }, 350);
+}
+
+// ================================================================
+// 每日心语
+// ================================================================
+var DAILY_QUOTES = [
+  { icon: '🌱', text: '你已经比昨天的自己更进一步了，这本身就是一种成长。' },
+  { icon: '🎋', text: '竹子用了四年只长了3厘米，但从第五年开始，每天长30厘米。你也是。' },
+  { icon: '💪', text: '不是因为没有挫折才坚强，而是因为经历了挫折，才学会了坚强。' },
+  { icon: '🌟', text: '每一次跌倒，都在为下一次站得更稳做准备。' },
+  { icon: '🌿', text: '成长不是一场竞赛，你不需要和别人比速度，只需要比昨天的自己好一点点。' },
+  { icon: '🍃', text: '允许自己偶尔脆弱，那也是你真实的一部分。' },
+  { icon: '✨', text: '世界上没有白走的路，每一次尝试都在雕刻未来的你。' },
+  { icon: '🕊️', text: '当你想放弃的时候，想想当初为什么走到了这里。' },
+  { icon: '🌈', text: '风雨过后不一定有彩虹，但一定会有更清澈的天空。' },
+  { icon: '🌻', text: '向日葵看不到太阳也会开放，你要学会在阴天里依然向阳生长。' },
+  { icon: '🏔️', text: '爬上山顶不是为了让世界看到你，而是为了让你看到更大的世界。' },
+  { icon: '💡', text: '困扰你的不是事情本身，而是你对事情的看法。换个角度，世界就不一样了。' },
+  { icon: '🌊', text: '情绪像海浪，来了又走。你不是海浪本身，你是看海的人。' },
+  { icon: '🫂', text: '不用一个人扛下所有。愿意开口求助，也是一种了不起的勇气。' },
+  { icon: '🍀', text: '今天没做到的事，明天还有机会。别急着否定自己。' },
+  { icon: '⏳', text: '慢一点也没关系，有些成长需要时间，就像竹子在地下扎根的那几年。' },
+  { icon: '🪴', text: '你种下的每一颗小小的努力，都会在某个时候悄悄发芽。' },
+  { icon: '☁️', text: '心情就像天气，阴天不会永远持续，太阳总会回来。' },
+  { icon: '🫧', text: '累了就歇一歇，休息不是偷懒，是为了走更远的路。' },
+  { icon: '🌙', text: '今天辛苦啦，好好睡一觉，明天又是新的开始。' },
+  { icon: '⭐', text: '你不用成为最好的，做真实的自己，就已经足够珍贵。' },
+  { icon: '🧭', text: '迷茫的时候，先走好眼前的一小步，方向会慢慢清晰。' },
+  { icon: '🌷', text: '每一朵花都有自己的花期，你也是，不必急着绽放。' },
+  { icon: '🪞', text: '你比你想象中更坚强，也比你想象中更值得被温柔以待。' },
+  { icon: '🎈', text: '把不开心的事暂时放下，给自己一点喘息的空间。' },
+  { icon: '🌿', text: '深呼吸，你已经做得很好了，不必事事完美。' },
+  { icon: '☀️', text: '在没人看见的地方，你也在努力生长，这很了不起。' },
+  { icon: '🪨', text: '石头压不住种子，风雨挡不住发芽。你的力量藏在心里。' },
+  { icon: '🕯️', text: '当你觉得黑暗的时候，别忘了自己也发着微光。' },
+  { icon: '🎋', text: '韧，不是从不变形，而是被压弯后还能慢慢直起来。' }
+];
+
+var dailyIdx = Math.floor(Math.random() * DAILY_QUOTES.length);
+
+function showDaily() {
+  var q = DAILY_QUOTES[dailyIdx];
+  document.getElementById('dailyIcon').textContent = q.icon;
+  document.getElementById('dailyText').textContent = q.text;
+}
+
+function refreshDaily() {
+  dailyIdx = (dailyIdx + 1) % DAILY_QUOTES.length;
+  var el = document.getElementById('dailyText');
+  el.style.opacity = '0';
+  setTimeout(function() {
+    showDaily();
+    el.style.opacity = '1';
+  }, 250);
+}
+
+showDaily();
+</script>
+
+</body>
+</html>
