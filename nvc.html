@@ -91,6 +91,33 @@ main{flex:1 1 auto;min-height:0;position:relative}
 .scr.fit > .fb     {flex:0 0 auto;margin-top:9px}
 .scr.fit > .navrow {flex:0 0 auto;margin-top:11px}
 
+/* ══════════════════════════════════════════════════════════
+   第一关 / 第二关：整屏一根大滚动条
+   卡片高度跟着内容走，选项区永远不再自己滚 ——
+   宁可把上面的题干滚上去，也不让学生一边答题一边找滚动条
+   ══════════════════════════════════════════════════════════ */
+#scrLv1.on,#scrLv2.on{overflow-y:auto;overscroll-behavior:contain;
+  padding-bottom:26px;scrollbar-color:#D6CFC4 transparent;scrollbar-width:auto}
+#scrLv1 > .tracks,#scrLv2 > .duo{flex:0 0 auto;min-height:0}
+#scrLv1 .trk{overflow:visible}
+#scrLv1 .trk .opts{flex:0 0 auto;min-height:0;overflow:visible}
+#scrLv2 .pane{overflow:visible}
+#scrLv2 .pane .pb{flex:0 0 auto;min-height:0;overflow:visible}
+
+/* 往下滚的时候，计时条钉在顶上 —— 题干可以滚走，倒计时不能滚走 */
+#scrLv1 > .bar2,#scrLv2 > .bar2{
+  position:sticky;top:0;z-index:6;
+  background:var(--bg);padding:4px 0 6px;
+}
+
+/* 滚动条做粗一点，一体机上手指也拖得住 */
+#scrLv1::-webkit-scrollbar,#scrLv2::-webkit-scrollbar{width:18px}
+#scrLv1::-webkit-scrollbar-track,#scrLv2::-webkit-scrollbar-track{background:transparent}
+#scrLv1::-webkit-scrollbar-thumb,#scrLv2::-webkit-scrollbar-thumb{
+  background:#D6CFC4;border-radius:100px;border:5px solid var(--bg);
+}
+#scrLv1::-webkit-scrollbar-thumb:hover,#scrLv2::-webkit-scrollbar-thumb:hover{background:#C2B9AC}
+
 h1{font-size:33px;font-weight:800;margin:0 0 12px;letter-spacing:-.01em}
 .card{background:var(--card);border-radius:var(--r);padding:26px 28px;box-shadow:var(--sh);margin-bottom:20px}
 .card h3{margin:0 0 12px;font-size:18px;font-weight:800}
@@ -1722,6 +1749,7 @@ function paintL1(){
 
   TM.pfx = 'tm1'; TM.onEnd = l1Expire; TM.pills = (st.step === 0);
   tmReset();
+  $('scrLv1').scrollTop = 0;          /* 新的一步：先把题干露出来 */
 }
 
 function paintGap(side){
@@ -1960,6 +1988,7 @@ function paintL2(){
   TM.pfx = 'tm2'; TM.onEnd = l2Expire; TM.pills = (t === 0);
   tmReset();
   updateNextLabels();
+  $('scrLv2').scrollTop = 0;          /* 新的一句：先把聊天记录和选项露出来 */
 }
 
 /* active 的那一边亮起来并弹出选项；另一边写「等对方说完」 */
@@ -2108,6 +2137,8 @@ function l2Resolve(i, over){
   }
 
   $('l2Fb').classList.add('on');
+  /* 反馈卡在选项下面 —— 滚下去让它露出来，别让老师错过解析 */
+  $('l2Fb').scrollIntoView({block:'nearest',behavior:'smooth'});
   /* 5 秒后自动轮到对方；讲评模式下就停在这儿，等老师按「下一句」 */
   autoOrHint(nextL2, 'l2Auto', '秒后自动轮到对方 · 要细讲按「⏸ 停住讲评」');
   updateNextLabels();
