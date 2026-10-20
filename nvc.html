@@ -526,9 +526,11 @@ ul.qs li{margin-bottom:9px;color:var(--ink2);font-size:15.5px;line-height:1.75}
    时间尽量留给这两张卡，别再堆文字
    ══════════════════════════════════════════════════════════ */
 .scr.home.on{
-  position:relative;display:flex;align-items:center;justify-content:center;
-  padding:22px;overflow:hidden;
+  position:relative;display:flex;align-items:flex-start;justify-content:center;
+  padding:22px;overflow-y:auto;
 }
+/* 有空间时上下居中；窗口不够高时自动靠上、可以滚（margin:auto 的经典写法） */
+.hmwrap{margin:auto}
 .hmbg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .hmbg i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5}
 .hmbg .b1{width:420px;height:420px;background:var(--t3b);left:-140px;top:-140px}

@@ -2,66 +2,2335 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>非暴力沟通闯关 · 韧竹小站</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
-  background: #fefaf4; color: #4a4038; overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
+*{box-sizing:border-box}
+:root{
+  --bg:#FFF8F1; --card:#fff;
+  --ink:#33324E; --ink2:#6E6C8A; --ink3:#9C9AB5;
+  --line:#EDE7DE; --r:22px;
+  --sh:0 4px 0 rgba(51,50,78,.06),0 12px 28px rgba(51,50,78,.06);
+  --sh-s:0 3px 0 rgba(51,50,78,.07);
+  --t1:#4EC5A5; --t2:#FFB443; --t3:#5FA8FF; --t4:#A98BEF; --t5:#FF7A59; --t6:#F5C33B;
+  --t1b:#E7F8F3; --t2b:#FFF4E2; --t3b:#E9F2FF; --t4b:#F2ECFF; --t5b:#FFF0EB;
+  --A:#5FA8FF; --Ab:#E9F2FF; --Ad:#2F73C7;
+  --B:#A98BEF; --Bb:#F2ECFF; --Bd:#6446C4;
+  --L:#5FA8FF; --R:#A98BEF;
 }
 
-/* 顶部一条极窄的返回条 —— 不再放整套导航，把高度全留给游戏 */
-.topline {
-  height: 48px;
-  display: flex; align-items: center; gap: 14px;
-  padding: 0 18px;
-  background: rgba(254,250,244,0.97);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  font-size: 13px; letter-spacing: 1px;
+/* ══════════════════════════════════════════════════════════
+   v2 的骨架：整页不再滚动
+   html/body 吃满视口 → body 竖排（顶栏 + main）→ main 是唯一的溢出容器
+   普通屏（开场/收尾）在 main 里自己滚
+   .fit 屏（两关 + 两个结算）锁死 main 的高度，内部用弹性布局分配
+   ══════════════════════════════════════════════════════════ */
+html,body{height:100%;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; overflow:hidden;
 }
-.topline .back {
-  display: inline-flex; align-items: center; gap: 6px;
-  color: #6a9a6a; text-decoration: none; font-weight: 700;
-  padding: 6px 12px; border-radius: 10px;
-  transition: all 0.25s;
-}
-.topline .back:hover { background: rgba(125,184,138,0.1); color: #4a7a4a; }
-.topline .name { font-weight: 700; color: #4a4038; letter-spacing: 2px; }
-.topline .sp { flex: 1; }
-.topline .tip { font-size: 12px; color: #b8a898; letter-spacing: 2px; }
-.topline .full {
-  font-size: 12px; color: #9a8e80; text-decoration: none;
-  padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.06);
-  transition: all 0.25s;
-}
-.topline .full:hover { color: #6a9a6a; border-color: rgba(125,184,138,0.35); }
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit;font-size:inherit}
+b{font-weight:800}
 
-iframe {
-  display: block; width: 100%; height: calc(100vh - 48px);
-  border: 0; background: #FFF8F1;
+/* ═══ 顶栏（z-index 高于暂停遮罩，保证暂停后还能点「继续」）═══ */
+.bar{
+  position:relative; z-index:300; flex:0 0 auto;
+  background:rgba(255,248,241,.96); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:12px; padding:9px 20px; flex-wrap:wrap;
+}
+.bar .logo{font-size:16px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+.bar .logo i{font-style:normal;color:var(--t3)}
+/* 站内入口：从韧竹小站点进来时，左上角一键回站 */
+.bar .siteback{
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  font-size:13px;font-weight:800;color:var(--ink2);text-decoration:none;
+  background:#F6F2EB;padding:7px 13px;border-radius:100px;transition:.15s;
+}
+.bar .siteback:hover{background:var(--t3b);color:var(--Ad);transform:translateY(-1px)}
+.bar .sp{flex:1}
+.bar button{
+  padding:7px 15px;border-radius:100px;font-size:14px;font-weight:800;
+  background:#fff;box-shadow:var(--sh-s);transition:.15s;white-space:nowrap;
+}
+.bar button:hover{transform:translateY(-1px)}
+.bar button.on{background:var(--ink);color:#fff}
+.bar .jump{display:flex;gap:6px;padding-left:13px;margin-left:2px;border-left:1px solid var(--line)}
+.bar .jump button{background:#F6F2EB;box-shadow:none;color:var(--ink2)}
+.bar .jump button:hover{background:#EEE8DE}
+.bar .jump button.on{background:var(--t3);color:#fff;box-shadow:none}
+
+/* ═══ 一体机大键：老师站在讲台边、隔着半个屏幕也按得到 ═══ */
+.bar .bigkey{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:48px;padding:0 24px;border-radius:100px;
+  font-size:16px;font-weight:800;letter-spacing:.04em;
+  box-shadow:0 3px 0 rgba(51,50,78,.16);transition:.15s;
+}
+.bar .bigkey:hover{transform:translateY(-1px)}
+.bar .bigkey:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(51,50,78,.16)}
+#pauseBtn.bigkey{background:var(--ink);color:#fff}
+#pauseBtn.bigkey.on{background:var(--t1);color:#fff;box-shadow:0 3px 0 rgba(31,122,94,.3)}
+#reviewBtn.bigkey{background:#fff;color:var(--ink2);box-shadow:var(--sh-s)}
+#reviewBtn.bigkey.on{background:var(--t2);color:#5B3B00;box-shadow:0 3px 0 rgba(140,90,8,.22)}
+
+main{flex:1 1 auto;min-height:0;position:relative}
+
+/* ═══ 屏幕 ═══ */
+.scr{
+  display:none; height:100%; max-width:1420px; margin:0 auto;
+  padding:18px 22px 46px; overflow-y:auto; overscroll-behavior:contain;
+}
+.scr.on{display:block}
+/* 游戏屏：锁死高度，内部弹性分配，绝不整页滚 */
+.scr.fit.on{display:flex;flex-direction:column;padding:11px 16px;overflow:hidden}
+.scr.fit > .bar2   {flex:0 0 auto;margin-bottom:9px}
+.scr.fit > .qbox   {flex:0 0 auto;margin-bottom:9px}
+.scr.fit > .chatwrap{flex:0 0 auto;margin-bottom:9px}
+.scr.fit > .tracks {flex:1 1 auto;min-height:0}
+.scr.fit > .duo    {flex:1 1 auto;min-height:0}
+.scr.fit > .ends   {flex:0 0 auto;margin-bottom:11px}
+.scr.fit > .who-won{flex:0 0 auto;margin-bottom:11px}
+.scr.fit > .recap  {flex:1 1 auto;min-height:0;overflow-y:auto}
+.scr.fit > .fb     {flex:0 0 auto;margin-top:9px}
+.scr.fit > .navrow {flex:0 0 auto;margin-top:11px}
+
+/* ══════════════════════════════════════════════════════════
+   第一关 / 第二关：整屏一根大滚动条
+   卡片高度跟着内容走，选项区永远不再自己滚 ——
+   宁可把上面的题干滚上去，也不让学生一边答题一边找滚动条
+   ══════════════════════════════════════════════════════════ */
+#scrLv1.on,#scrLv2.on{overflow-y:auto;overscroll-behavior:contain;
+  padding-bottom:26px;scrollbar-color:#D6CFC4 transparent;scrollbar-width:auto}
+#scrLv1 > .tracks,#scrLv2 > .duo{flex:0 0 auto;min-height:0}
+#scrLv1 .trk{overflow:visible}
+#scrLv1 .trk .opts{flex:0 0 auto;min-height:0;overflow:visible}
+#scrLv2 .pane{overflow:visible}
+#scrLv2 .pane .pb{flex:0 0 auto;min-height:0;overflow:visible}
+
+/* 往下滚的时候，计时条钉在顶上 —— 题干可以滚走，倒计时不能滚走 */
+#scrLv1 > .bar2,#scrLv2 > .bar2{
+  position:sticky;top:0;z-index:6;
+  background:var(--bg);padding:4px 0 6px;
 }
 
-@media (max-width: 640px) {
-  .topline { gap: 8px; padding: 0 10px; }
-  .topline .tip { display: none; }
-  .topline .name { font-size: 12px; letter-spacing: 1px; }
+/* 滚动条做粗一点，一体机上手指也拖得住 */
+#scrLv1::-webkit-scrollbar,#scrLv2::-webkit-scrollbar{width:18px}
+#scrLv1::-webkit-scrollbar-track,#scrLv2::-webkit-scrollbar-track{background:transparent}
+#scrLv1::-webkit-scrollbar-thumb,#scrLv2::-webkit-scrollbar-thumb{
+  background:#D6CFC4;border-radius:100px;border:5px solid var(--bg);
+}
+#scrLv1::-webkit-scrollbar-thumb:hover,#scrLv2::-webkit-scrollbar-thumb:hover{background:#C2B9AC}
+
+h1{font-size:33px;font-weight:800;margin:0 0 12px;letter-spacing:-.01em}
+.card{background:var(--card);border-radius:var(--r);padding:26px 28px;box-shadow:var(--sh);margin-bottom:20px}
+.card h3{margin:0 0 12px;font-size:18px;font-weight:800}
+.card p{margin:0 0 10px;color:var(--ink2)}
+.card p:last-child{margin-bottom:0}
+
+/* ═══ 开场 ═══ */
+.hero{background:var(--card);border-radius:var(--r);padding:34px 38px;box-shadow:var(--sh);margin-bottom:20px}
+.hero .eyebrow{
+  display:inline-block;background:var(--t3b);color:var(--Ad);font-size:13px;font-weight:800;
+  padding:5px 14px;border-radius:100px;margin-bottom:16px;letter-spacing:.06em;
+}
+.hero p{font-size:17px;color:var(--ink2);margin:0 0 12px}
+.rules{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0 4px}
+.rule{background:#FBF8F2;border-radius:16px;padding:17px 19px}
+.rule .n{
+  display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+  border-radius:8px;background:var(--t3);color:#fff;font-size:13px;font-weight:800;margin-bottom:9px;
+}
+.rule h4{margin:0 0 6px;font-size:15.5px;font-weight:800}
+.rule p{margin:0;font-size:14.5px;color:var(--ink2);line-height:1.7}
+.lvbox{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0 0}
+.lvcard{background:#FBF8F2;border-radius:16px;padding:19px 21px;border-left:5px solid var(--t3)}
+.lvcard.b{border-left-color:var(--t4)}
+.lvcard .k{font-size:12.5px;font-weight:800;color:var(--ink3);letter-spacing:.08em;margin-bottom:6px}
+.lvcard h4{margin:0 0 8px;font-size:17px;font-weight:800}
+.lvcard p{margin:0;font-size:14.5px;color:var(--ink2);line-height:1.75}
+.gos{display:flex;gap:14px;align-items:center;margin-top:24px;flex-wrap:wrap}
+.big{
+  background:var(--ink);color:#fff;padding:14px 36px;border-radius:100px;
+  font-size:17px;font-weight:800;box-shadow:0 6px 0 rgba(51,50,78,.18);transition:.15s;
+}
+.big:hover{transform:translateY(-2px);box-shadow:0 8px 0 rgba(51,50,78,.18)}
+.big.ghost{background:#fff;color:var(--ink);box-shadow:var(--sh-s)}
+.hint{font-size:14px;color:var(--ink3)}
+
+/* ═══ 标题行 + 内嵌限时条 ═══ */
+.bar2{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.bar2 .sp{flex:1;min-width:6px}
+.pill{font-size:13px;font-weight:800;padding:5px 13px;border-radius:100px;background:#fff;box-shadow:var(--sh-s)}
+.pill.lv{background:var(--ink);color:#fff}
+.pill.step{background:var(--t3b);color:var(--Ad)}
+
+.tm{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:100px;
+    padding:6px 13px;box-shadow:var(--sh)}
+.tm .lb{font-size:12.5px;font-weight:800;color:var(--ink3);letter-spacing:.06em;white-space:nowrap}
+.tm .pills{display:flex;gap:5px;align-items:center}
+.tm .pills button{padding:3px 11px;border-radius:100px;background:#F3F0EA;font-size:13px;
+   font-weight:800;color:var(--ink2);transition:.14s;white-space:nowrap}
+.tm .pills button:hover{background:#EAE4DA}
+.tm .pills button.on{background:var(--ink);color:#fff}
+.tm .pills .cur{background:#F3F0EA;color:var(--ink);cursor:default}
+.tm .pills .cur:hover{background:#F3F0EA}
+.tm .pills .chg{background:var(--t3b);color:var(--Ad)}
+.tm .pills .chg:hover{background:#D6E7FF}
+.tm .bar{width:104px;height:10px;border-radius:100px;background:#F1EDE6;overflow:hidden}
+.tm .bar i{display:block;height:100%;border-radius:100px;background:var(--t1)}
+.tm .num{font-size:25px;font-weight:800;font-variant-numeric:tabular-nums;min-width:48px;
+   text-align:right;line-height:1}
+.tm .num small{font-size:13px;font-weight:700;color:var(--ink3);margin-left:1px}
+.tm .num.warn{color:#C77800}
+.tm .num.hot{color:#D9401A}
+.tm .go{
+  background:var(--ink);color:#fff;padding:6px 19px;border-radius:100px;font-size:14px;font-weight:800;
+  box-shadow:0 3px 0 rgba(51,50,78,.18);transition:.15s;white-space:nowrap;
+}
+.tm .go:hover:not(:disabled){transform:translateY(-1px)}
+.tm .go:disabled{cursor:default;background:#D8D5E2;box-shadow:none;color:#fff}
+/* 第一题之后按钮变成「重新计时」—— 不再是必按，是没准备好时的后悔药 */
+.tm .go.again{background:#F3F0EA;color:var(--ink2);box-shadow:none;font-weight:700}
+.tm .go.again:hover{background:#EAE4DA;transform:none}
+.tm .go.pulse{animation:tpulse 1.5s ease-in-out infinite}
+@keyframes tpulse{
+  0%,100%{box-shadow:0 3px 0 rgba(51,50,78,.18)}
+  50%{box-shadow:0 3px 0 rgba(51,50,78,.18),0 0 0 9px rgba(95,168,255,.25)}
+}
+.tm.free .bar i{background:var(--ink3)}
+.tm.free .num{color:var(--ink3)}
+
+/* ═══ 锁定态（还没按"开始"时，选项是灰的）═══ */
+.opts.locked .opt,.picks.locked .pick{opacity:.5;cursor:not-allowed}
+
+/* ═══ 暂停遮罩 ═══ */
+.mask{
+  position:fixed;inset:0;z-index:200;background:rgba(255,248,241,.94);backdrop-filter:blur(7px);
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;
+}
+.mask.on{display:flex}
+.mask .ic{font-size:60px;line-height:1}
+.mask h2{font-size:32px;font-weight:800;margin:0;letter-spacing:.06em}
+.mask p{color:var(--ink2);margin:0;font-size:16px}
+/* 遮罩上的「继续讲课」—— 暂停之后，老师站在屏幕前一点就能回来 */
+.mask .resume{
+  margin-top:16px;font-size:20px;font-weight:800;letter-spacing:.1em;
+  padding:18px 58px;border-radius:100px;background:var(--ink);color:#fff;
+  box-shadow:0 6px 0 rgba(51,50,78,.18);transition:.15s;
+}
+.mask .resume:hover{transform:translateY(-2px);box-shadow:0 8px 0 rgba(51,50,78,.18)}
+.mask .resume:active{transform:translateY(1px);box-shadow:0 3px 0 rgba(51,50,78,.18)}
+
+/* ═══ 第一关 · 双赛道 ═══ */
+.qbox{background:var(--card);border-radius:var(--r);padding:14px 22px;box-shadow:var(--sh)}
+.qbox .k{font-size:13px;font-weight:800;color:var(--t2);letter-spacing:.06em;margin-bottom:4px}
+.qbox h3{margin:0 0 4px;font-size:19px;font-weight:800}
+.qbox p{margin:0;font-size:15px;color:var(--ink2);line-height:1.6}
+
+.tracks{display:grid;grid-template-columns:1fr 1fr;gap:14px;min-height:0}
+.tracks.solo{grid-template-columns:1fr;max-width:680px}
+.trk{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);
+     display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.trk .th{flex:0 0 auto;padding:11px 17px 10px;border-bottom:1px solid var(--line)}
+.trk.L .th{background:linear-gradient(180deg,var(--Ab),#fff)}
+.trk.R .th{background:linear-gradient(180deg,var(--Bb),#fff)}
+.trk .who{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.trk .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.trk.L .dot{background:var(--A)} .trk.R .dot{background:var(--B)}
+.trk .nm{font-size:16.5px;font-weight:800}
+.trk.L .nm{color:var(--Ad)} .trk.R .nm{color:var(--Bd)}
+.trk .sc{font-size:13px;color:var(--ink3);margin-left:auto;font-weight:700}
+.gaprow{display:flex;align-items:center;gap:11px}
+.gaprow .lb{font-size:12.5px;font-weight:800;color:var(--ink3);white-space:nowrap;letter-spacing:.04em}
+.gapbar{flex:1;height:11px;border-radius:100px;background:#F1EDE6;overflow:hidden}
+.gapbar i{display:block;height:100%;border-radius:100px;transition:width .55s cubic-bezier(.4,0,.2,1),background .55s}
+.gapnum{font-size:16px;font-weight:800;min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
+/* 选项区 —— 唯一会内部滚动的区域 */
+.trk .opts{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:12px 15px 15px;display:flex;flex-direction:column;gap:9px;
+}
+.trk .opts::-webkit-scrollbar{width:7px}
+.trk .opts::-webkit-scrollbar-thumb{background:#E2DCD2;border-radius:100px}
+.opt{
+  display:flex;gap:10px;align-items:flex-start;text-align:left;
+  background:#FBF9F6;border:2px solid transparent;border-radius:13px;
+  padding:11px 14px;font-size:15px;line-height:1.6;color:var(--ink);
+  transition:.14s;width:100%;flex:0 0 auto;
+}
+.opt:hover:not(:disabled){background:#F6F2EB;transform:translateX(2px)}
+.opt:disabled{cursor:default}
+.opt .kb{
+  flex:0 0 auto;width:22px;height:22px;border-radius:7px;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12.5px;font-weight:800;color:var(--ink3);box-shadow:var(--sh-s);margin-top:1px;
+}
+.trk.L .opt.sel{border-color:var(--A);background:var(--Ab)}
+.trk.R .opt.sel{border-color:var(--B);background:var(--Bb)}
+.opt.sel .kb{background:var(--ink);color:#fff}
+.opt.y{border-color:var(--t1)!important;background:var(--t1b)!important}
+.opt.h{border-color:var(--t2)!important;background:var(--t2b)!important}
+.opt.n{border-color:var(--t5)!important;background:var(--t5b)!important}
+.opt .tx{flex:1}
+.opt .mk{flex:0 0 auto;font-size:15px;font-weight:800;margin-left:auto;padding-left:8px}
+
+/* ═══ 揭晓 / 反馈 —— 固定在底部，不挤走题目 ═══ */
+.fb{background:var(--card);border-radius:var(--r);padding:14px 20px;box-shadow:var(--sh);display:none}
+.fb.on{display:block}
+.fb .t{font-size:16px;font-weight:800;margin-bottom:9px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.fb .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fb .cols.solo{grid-template-columns:1fr}
+.fb .c{background:#FBF8F2;border-radius:14px;padding:11px 14px;font-size:14.5px;line-height:1.7;color:var(--ink2)}
+.fb .c .hd{font-weight:800;color:var(--ink);margin-bottom:5px;font-size:14.5px}
+.fb .c .qt{color:var(--ink3)}
+.navrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+/* 第二关：反馈只看 5 秒，自动轮到对方 —— 免得等的人先看到了答案 */
+.autoline{margin-top:12px;font-size:14px;font-weight:800;color:var(--ink3);
+  display:flex;align-items:center;gap:8px;min-height:22px}
+.autoline b{color:var(--t3);font-size:19px;font-variant-numeric:tabular-nums;line-height:1}
+.autoline .sk{font-weight:700;color:var(--ink3);opacity:.8}
+.autoline .rvbar{flex:1;max-width:180px;height:7px;border-radius:100px;background:#F1EDE6;overflow:hidden}
+.autoline .rvbar i{display:block;height:100%;border-radius:100px;background:var(--t3);transition:width .1s linear}
+
+/* ═══ 结算 ═══ */
+.ends{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.end{background:var(--card);border-radius:var(--r);padding:18px 22px;box-shadow:var(--sh);text-align:center}
+.end .nm{font-size:17px;font-weight:800;margin-bottom:2px}
+.end.L .nm{color:var(--Ad)} .end.R .nm{color:var(--Bd)}
+.end .big{font-size:46px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.end.L .big{color:var(--A)} .end.R .big{color:var(--B)}
+.end .u{font-size:13px;color:var(--ink3);font-weight:700;margin-top:1px}
+.end .verdict{font-size:14.5px;font-weight:800;margin-top:10px;padding:8px 13px;border-radius:12px;display:inline-block}
+.v-good{background:var(--t1b);color:#1F7A5E}
+.v-mid{background:var(--t2b);color:#8A5A08}
+.v-bad{background:var(--t5b);color:#B23A1C}
+.who-won{
+  background:var(--ink);color:#fff;border-radius:var(--r);padding:16px 24px;
+  font-size:18.5px;font-weight:800;text-align:center;line-height:1.55;
+}
+.who-won small{display:block;font-size:14px;font-weight:600;color:#B9B7CC;margin-top:6px}
+/* 复盘区 —— 唯一会内部滚动的区域 */
+.recap{background:var(--card);border-radius:var(--r);padding:18px 22px;box-shadow:var(--sh);
+       overscroll-behavior:contain}
+.recap::-webkit-scrollbar{width:7px}
+.recap::-webkit-scrollbar-thumb{background:#E2DCD2;border-radius:100px}
+.recap h3{margin:0 0 12px;font-size:17.5px;font-weight:800}
+.rline{display:grid;grid-template-columns:74px 1fr;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);align-items:start}
+.rline:last-child{border-bottom:0;padding-bottom:0}
+.rline .st{font-size:13px;font-weight:800;color:var(--ink3);padding-top:2px;line-height:1.5}
+.rline .bd{font-size:14.5px;line-height:1.7}
+.rline .q{color:var(--ink2)}
+.rline .vd{font-weight:800;margin-top:4px}
+.vd.y{color:#1F7A5E} .vd.h{color:#8A5A08} .vd.n{color:#B23A1C}
+
+/* ═══ 第二关 · 对话记录 ═══ */
+.chatwrap{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.chat{
+  height:clamp(84px,13vh,148px);overflow-y:auto;overscroll-behavior:contain;
+  padding:12px 20px;display:flex;flex-direction:column;gap:9px;
+}
+.chat::-webkit-scrollbar{width:7px}
+.chat::-webkit-scrollbar-thumb{background:#E2DCD2;border-radius:100px}
+.msg{display:flex;gap:10px;max-width:84%;flex:0 0 auto}
+.msg .av{
+  flex:0 0 auto;width:30px;height:30px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;
+}
+.msg.a .av{background:var(--A)} .msg.b .av{background:var(--B)}
+.msg .bub{background:#FBF8F2;border-radius:15px;padding:8px 14px;font-size:14.5px;line-height:1.62}
+.msg.a .bub{background:var(--Ab)} .msg.b .bub{background:var(--Bb)}
+.msg .bub .nm{font-size:12px;font-weight:800;color:var(--ink3);margin-bottom:2px}
+.msg.sys{max-width:100%;justify-content:center}
+.msg.sys .bub{background:#F3F0EA;font-size:13.5px;color:var(--ink2);border-radius:100px;padding:6px 16px;font-weight:700}
+.msg.over .bub{background:var(--t5b);color:#B23A1C;font-style:italic}
+
+/* ═══ 第二关 · 左右分屏（A 站左边，B 站右边）═══ */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;min-height:0}
+.pane{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);
+      display:flex;flex-direction:column;min-height:0;overflow:hidden;
+      border:3px solid transparent;transition:border-color .2s,opacity .2s}
+.pane.A.act{border-color:var(--A)}
+.pane.B.act{border-color:var(--B)}
+.pane:not(.act){opacity:.58}
+.pane .ph{flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:9px 16px;border-bottom:1px solid var(--line)}
+.pane.A .ph{background:linear-gradient(180deg,var(--Ab),#fff)}
+.pane.B .ph{background:linear-gradient(180deg,var(--Bb),#fff)}
+.pane .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.pane.A .dot{background:var(--A)} .pane.B .dot{background:var(--B)}
+.pane .nm{font-size:15.5px;font-weight:800}
+.pane.A .nm{color:var(--Ad)} .pane.B .nm{color:var(--Bd)}
+.pane .sc{margin-left:auto;font-size:13px;font-weight:800;color:var(--ink3);font-variant-numeric:tabular-nums}
+/* 面板内容 —— 唯一会内部滚动的区域 */
+.pane .pb{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:12px 16px 15px;
+}
+.pane .pb::-webkit-scrollbar{width:7px}
+.pane .pb::-webkit-scrollbar-thumb{background:#E2DCD2;border-radius:100px}
+.pane:not(.act) .pb{display:flex;align-items:center;justify-content:center}
+.wait{text-align:center;color:var(--ink3)}
+.wait .wi{font-size:34px;line-height:1;margin-bottom:9px}
+.wait .wt{font-size:16px;font-weight:800;color:var(--ink2);margin-bottom:4px}
+.wait .ws{font-size:13.5px}
+.yours{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.yours .t{font-size:12.5px;font-weight:800;color:var(--ink3);letter-spacing:.08em}
+.mood{font-size:12.5px;font-weight:800;padding:3px 11px;border-radius:100px}
+.mood.m-soft{background:var(--t1b);color:#1F7A5E}
+.mood.m-ok{background:#F3F0EA;color:var(--ink2)}
+.mood.m-hard{background:var(--t5b);color:#B23A1C}
+.warnline{margin:0 0 9px;font-size:13px;color:#B23A1C;font-weight:700;line-height:1.55}
+.picks{display:flex;flex-direction:column;gap:9px}
+.pick{
+  display:flex;gap:11px;align-items:flex-start;text-align:left;
+  background:#FBF9F6;border:2px solid transparent;border-radius:13px;
+  padding:11px 14px;font-size:15px;line-height:1.6;color:var(--ink);transition:.14s;width:100%;flex:0 0 auto;
+}
+.pick:hover:not(:disabled){background:#F6F2EB;transform:translateX(2px)}
+.pick:disabled{cursor:default}
+.pick .kb{
+  flex:0 0 auto;width:24px;height:24px;border-radius:8px;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12.5px;font-weight:800;color:var(--ink3);box-shadow:var(--sh-s);margin-top:1px;
+}
+.pick .tx{flex:1}
+.pick .mk{flex:0 0 auto;margin-left:auto;font-size:15px;font-weight:800;padding-left:8px}
+.pick.y{border-color:var(--t1);background:var(--t1b)}
+.pick.y .kb{background:var(--t1);color:#fff}
+.pick.h{border-color:var(--t2);background:var(--t2b)}
+.pick.h .kb{background:var(--t2);color:#fff}
+.pick.n{border-color:var(--t5);background:var(--t5b)}
+.pick.n .kb{background:var(--t5);color:#fff}
+
+/* ═══ 收尾 ═══ */
+.four{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+.four .s{background:#FBF8F2;border-radius:16px;padding:17px 19px;border-top:4px solid var(--t3)}
+.four .s:nth-child(2){border-top-color:var(--t1)}
+.four .s:nth-child(3){border-top-color:var(--t2)}
+.four .s:nth-child(4){border-top-color:var(--t4)}
+.four .k{font-size:12.5px;font-weight:800;color:var(--ink3);letter-spacing:.08em;margin-bottom:6px}
+.four h4{margin:0 0 7px;font-size:17px;font-weight:800}
+.four p{margin:0;font-size:14.5px;color:var(--ink2);line-height:1.7}
+.traps{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 0}
+.trap{background:var(--t5b);border-radius:16px;padding:15px 19px}
+.trap .bad{font-size:15px;font-weight:800;color:#B23A1C;margin-bottom:5px}
+.trap .good{font-size:14.5px;color:var(--ink2);line-height:1.7}
+ul.qs{margin:8px 0 0;padding-left:22px}
+ul.qs li{margin-bottom:9px;color:var(--ink2);font-size:15.5px;line-height:1.75}
+
+/* ══════════════════════════════════════════════════════════
+   低屏幕自适应：720p / 768p 的一体机也能一屏放下
+   ══════════════════════════════════════════════════════════ */
+@media (max-height:820px){
+  body{font-size:15px}
+  .scr.fit.on{padding:9px 14px}
+  .scr.fit > .bar2{margin-bottom:7px}
+  .scr.fit > .qbox{margin-bottom:7px}
+  .scr.fit > .chatwrap{margin-bottom:7px}
+  .scr.fit > .fb{margin-top:7px}
+  .scr.fit > .ends,.scr.fit > .who-won{margin-bottom:9px}
+  .scr.fit > .navrow{margin-top:9px}
+  .bar2{gap:7px}
+  .pill{font-size:12.5px;padding:4px 11px}
+  .tm{padding:5px 11px;gap:8px}
+  .tm .lb{font-size:12px}
+  .tm .pills button{padding:3px 9px;font-size:12.5px}
+  .tm .bar{width:80px;height:9px}
+  .tm .num{font-size:22px;min-width:42px}
+  .tm .go{padding:5px 16px;font-size:13.5px}
+  .qbox{padding:11px 18px}
+  .qbox .k{font-size:12.5px}
+  .qbox h3{font-size:17.5px}
+  .qbox p{font-size:14.5px}
+  .trk .th{padding:9px 14px 8px}
+  .trk .who{margin-bottom:6px}
+  .trk .nm{font-size:15.5px}
+  .trk .opts{padding:10px 13px 13px;gap:7px}
+  .opt{padding:9px 12px;font-size:14.5px}
+  .opt .kb{width:20px;height:20px;font-size:12px}
+  .pick{padding:9px 12px;font-size:14.5px}
+  .pick .kb{width:22px;height:22px;font-size:12px}
+  .pane .ph{padding:8px 14px}
+  .pane .pb{padding:10px 14px 13px}
+  .wait .wi{font-size:28px;margin-bottom:6px}
+  .wait .wt{font-size:15px}
+  .picks{gap:7px}
+  .chat{height:clamp(70px,11vh,110px);padding:10px 16px;gap:7px}
+  .msg .bub{padding:7px 12px;font-size:14px}
+  .fb{padding:11px 17px}
+  .fb .t{font-size:15px;margin-bottom:7px}
+  .fb .c{padding:9px 12px;font-size:14px}
+  .end{padding:14px 18px}
+  .end .big{font-size:38px}
+  .end .nm{font-size:15.5px}
+  .who-won{padding:13px 20px;font-size:17px}
+  .recap{padding:14px 18px}
+  .recap h3{font-size:16px;margin-bottom:9px}
+  .rline{padding:9px 0}
+  .autoline{margin-top:9px;font-size:13px}
+}
+@media (max-height:640px){
+  body{font-size:14px}
+  .qbox .k{display:none}         /* 极矮时先舍掉"这一步要说的是"，题干和选项一定保住 */
+  .trk .sc{display:none}
+  .end .big{font-size:31px}
+  .end .u{font-size:12px}
+  .who-won small{display:none}
+  .chat{height:62px}
+}
+@media (max-width:900px){
+  .rules,.lvbox,.fb .cols,.ends,.four,.traps{grid-template-columns:1fr}
+  .tracks,.duo{grid-template-columns:1fr}
+  .trk .opts,.pane .pb{overflow:visible}
+  .scr.fit.on{overflow-y:auto}
+  .scr.fit > .tracks,.scr.fit > .duo{flex:0 0 auto}
+  h1{font-size:26px}
+  .hero{padding:24px 20px}
+  .scr{padding:14px 13px 40px}
+  .msg{max-width:94%}
+  .bar{padding:8px 13px;gap:8px}
+  .bar .jump{padding-left:8px}
+  .tm{flex-wrap:wrap}
+  .tm .bar{width:66px}
+}
+
+/* ══════════════════════════════════════════════════════════
+   第一关 · 题面（一个组共用一份）
+   题是同一道，所以只摊开一次；排列两边不同，两条赛道各排各的
+   ══════════════════════════════════════════════════════════ */
+.qbox .qone{min-width:0}
+.qbox .qone p{font-size:14.5px}
+.qbox .shuf{
+  display:inline-block;margin-top:7px;font-size:12.5px;font-weight:800;
+  background:var(--t2b);color:#8A5A08;padding:4px 12px;border-radius:100px;
+}
+@media (max-height:820px){
+  .qbox h3{font-size:17.5px}
+  .qbox .qone p{font-size:13.5px;line-height:1.5}
+}
+@media (max-height:640px){
+  .qbox h3{font-size:16.5px}
+  .qbox .qone p{font-size:13px;line-height:1.45}
+}
+/* ══════════════════════════════════════════════════════════
+   第一关 · 交完卷的那一边立刻锁死
+   点了就灰掉、点不动、也改不了 —— 别人选了什么，更看不到
+   ══════════════════════════════════════════════════════════ */
+.opts.done .opt{cursor:default}
+.opts.done .opt:not(.sel){opacity:.36}
+.opts.done .opt.sel{opacity:1}
+
+/* 揭晓后那 5 秒 —— 那一行字本身就是「停住」的按钮 */
+.autoline{cursor:pointer}
+
+
+/* ══════════════════════════════════════════════════════════
+   关 卡 选 择
+   整节课的第一眼：只有标题、两关介绍、一行规则和按钮
+   时间尽量留给这两张卡，别再堆文字
+   ══════════════════════════════════════════════════════════ */
+.scr.home.on{
+  position:relative;display:flex;align-items:flex-start;justify-content:center;
+  padding:22px;overflow-y:auto;
+}
+/* 有空间时上下居中；窗口不够高时自动靠上、可以滚（margin:auto 的经典写法） */
+.hmwrap{margin:auto}
+.hmbg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.hmbg i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5}
+.hmbg .b1{width:420px;height:420px;background:var(--t3b);left:-140px;top:-140px}
+.hmbg .b2{width:380px;height:380px;background:var(--t4b);right:-120px;top:-60px}
+.hmbg .b3{width:340px;height:340px;background:var(--t2b);left:38%;bottom:-190px}
+
+.hmwrap{position:relative;z-index:1;width:100%;max-width:1080px;margin:auto;
+  display:flex;flex-direction:column;gap:22px}
+
+.hmhead{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;flex-wrap:wrap}
+.hmkick{display:inline-block;font-size:12.5px;font-weight:800;letter-spacing:.14em;
+  color:var(--Ad);background:var(--t3b);padding:5px 13px;border-radius:100px;margin-bottom:10px}
+.hmtitle{font-size:46px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:0 0 10px}
+.hmtitle i{font-style:normal;color:var(--t3)}
+.hmsub{font-size:16.5px;color:var(--ink2);margin:0;letter-spacing:.04em}
+
+.hmflow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding-bottom:6px}
+.hmflow .fl{font-size:15px;font-weight:800;padding:8px 18px;border-radius:100px}
+.hmflow .fl.f1{background:var(--t1b);color:#177A5F}
+.hmflow .fl.f2{background:var(--t2b);color:#8A5A08}
+.hmflow .fl.f3{background:var(--t3b);color:var(--Ad)}
+.hmflow .fl.f4{background:var(--t4b);color:var(--Bd)}
+.hmflow b{color:var(--ink3);font-weight:800}
+
+.hmcards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hmcard{position:relative;background:var(--card);border-radius:24px;padding:24px 26px 22px;
+  box-shadow:var(--sh);overflow:hidden;transition:.18s}
+.hmcard::before{content:'';position:absolute;left:0;right:0;top:0;height:6px}
+.hmcard.c1::before{background:linear-gradient(90deg,var(--A),#8FC4FF)}
+.hmcard.c2::before{background:linear-gradient(90deg,var(--B),#C7B4FF)}
+.hmcard:hover{transform:translateY(-3px);box-shadow:0 6px 0 rgba(51,50,78,.05),0 18px 38px rgba(51,50,78,.10)}
+.hmc-top{display:flex;align-items:center;gap:9px;margin:2px 0 12px}
+.hmc-no{font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--ink)}
+.hmc-tag{font-size:12px;font-weight:800;padding:3px 10px;border-radius:100px;background:#F5F1EA;color:var(--ink2)}
+.hmcard.c1 .hmc-tag{background:var(--Ab);color:var(--Ad)}
+.hmcard.c2 .hmc-tag{background:var(--Bb);color:var(--Bd)}
+.hmcard h2{font-size:23px;font-weight:800;margin:0 0 8px;letter-spacing:-.01em}
+.hmcard p{font-size:14.5px;line-height:1.75;color:var(--ink2);margin:0 0 18px;min-height:52px}
+.hmc-foot{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hmc-meta{font-size:12.5px;font-weight:700;color:var(--ink3);letter-spacing:.02em}
+.hmgo{color:#fff;font-size:15px;font-weight:800;white-space:nowrap;
+  padding:10px 22px;border-radius:100px;box-shadow:0 4px 0 rgba(51,50,78,.16);transition:.15s}
+.hmcard.c1 .hmgo{background:var(--Ad)}
+.hmcard.c2 .hmgo{background:var(--Bd)}
+.hmgo:hover{transform:translateY(-2px);box-shadow:0 6px 0 rgba(51,50,78,.16)}
+
+.hmstrip{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;
+  background:var(--card);border-radius:100px;padding:10px 18px;box-shadow:var(--sh-s)}
+.hmstrip .ks{font-size:13px;font-weight:700;color:var(--ink2);white-space:nowrap;
+  display:inline-flex;align-items:center;gap:6px}
+.hmstrip .ks b{display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:6px;font-size:11.5px;color:#fff}
+.hmstrip .kl{background:var(--A)} .hmstrip .kr{background:var(--B)}
+.hmstrip .ks.dim{color:var(--ink3);font-weight:600}
+.hmstrip .sp{flex:1;min-width:8px}
+.hmlink{font-size:13.5px;font-weight:800;color:var(--Ad);background:var(--t3b);
+  padding:7px 16px;border-radius:100px;white-space:nowrap;transition:.15s}
+.hmlink:hover{background:#D6E7FF}
+
+@media (max-height:760px){
+  .hmwrap{gap:15px}
+  .hmtitle{font-size:36px;margin-bottom:6px}
+  .hmsub{font-size:15px}
+  .hmkick{margin-bottom:7px}
+  .hmcard{padding:17px 22px 16px}
+  .hmcard h2{font-size:20px}
+  .hmcard p{font-size:13.5px;min-height:0;margin-bottom:12px;line-height:1.65}
+  .hmgo{padding:9px 18px;font-size:14px}
+  .hmstrip{padding:8px 16px}
+}
+@media (max-width:900px){
+  .scr.home.on{overflow-y:auto;align-items:flex-start;padding:18px 14px 40px}
+  .hmcards{grid-template-columns:1fr}
+  .hmtitle{font-size:34px}
+  .hmhead{gap:14px}
+  .hmstrip{border-radius:18px}
 }
 </style>
 </head>
 <body>
 
-<div class="topline">
-  <a class="back" href="index.html">🎋 韧竹小站</a>
-  <span class="name">非暴力沟通 · 闯关</span>
-  <span class="sp"></span>
-  <span class="tip">项目七 · 人际交往</span>
-  <a class="full" href="nvc.html" target="_blank" rel="noopener">全屏打开 ↗</a>
+<div class="bar">
+  <a class="siteback" href="index.html" title="回到韧竹小站">🎋 韧竹小站</a>
+  <div class="logo">非暴力沟通 · <i>闯关</i></div>
+  <div class="jump">
+    <button id="jLv1">第一关</button>
+    <button id="jLv2">第二关</button>
+    <button id="jEnd">总结</button>
+  </div>
+  <div class="sp"></div>
+  <button id="pauseBtn" class="bigkey" title="随时叫停，讲评完再继续（键盘：空格 / Esc）">⏸ 暂 停</button>
+  <button id="reviewBtn" class="bigkey" title="讲评模式：不计时、答完不自动翻页，全部由老师按「下一题」往下走">⏱ 自动翻页</button>
+  <button id="setBtn" title="两组比拼：换一套题（甲卷 / 乙卷）">甲 卷</button>
+  <button id="modeBtn">双人模式</button>
+  <button id="resetBtn">重 来</button>
 </div>
 
-<iframe src="nvc.html" title="非暴力沟通闯关"></iframe>
+<div class="mask" id="mask">
+  <div class="ic">⏸</div>
+  <h2>已 暂 停</h2>
+  <p>计时和作答都停住了 —— 讲评完，按下面这个键回来。</p>
+  <button class="resume" id="maskResume">▶ 继 续 讲 课</button>
+</div>
 
+<main>
+
+<!-- ══════════ 关卡选择（一屏，不滚动） ══════════ -->
+<section class="scr home on" id="scrHome">
+  <div class="hmbg" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+  <div class="hmwrap">
+
+    <div class="hmhead">
+      <div class="hmtxt">
+        <span class="hmkick">项 目 七 · 人 际 交 往</span>
+        <h1 class="hmtitle">非暴力沟通<i>闯关</i></h1>
+        <p class="hmsub">四个字，把一句难开口的话说清楚。</p>
+      </div>
+      <div class="hmflow">
+        <span class="fl f1">观察</span><b>→</b>
+        <span class="fl f2">感受</span><b>→</b>
+        <span class="fl f3">需要</span><b>→</b>
+        <span class="fl f4">请求</span>
+      </div>
+    </div>
+
+    <div class="hmcards">
+      <article class="hmcard c1">
+        <div class="hmc-top"><span class="hmc-no">第 一 关</span><span class="hmc-tag">并排双赛道</span></div>
+        <h2>两个人都说清楚</h2>
+        <p>同一道题、同样四个选项，只是排列顺序被换过 —— 想抄旁边那位的位置，抄到的是另一个坑。</p>
+        <div class="hmc-foot">
+          <span class="hmc-meta">4 步 · 隔阂值 · 交卷即锁</span>
+          <button class="hmgo" id="goLv1">开始 →</button>
+        </div>
+      </article>
+
+      <article class="hmcard c2">
+        <div class="hmc-top"><span class="hmc-no">第 二 关</span><span class="hmc-tag">轮流对话</span></div>
+        <h2>把对方的话接住</h2>
+        <p>两个人演同一场冲突，轮流开口。上一句说得好不好，会决定下一句好不好接。</p>
+        <div class="hmc-foot">
+          <span class="hmc-meta">6 句 · 沟通分 · 气氛会变</span>
+          <button class="hmgo" id="goLv2">开始 →</button>
+        </div>
+      </article>
+    </div>
+
+    <div class="hmstrip">
+      <span class="ks"><b class="kl">左</b>1 2 3 4</span>
+      <span class="ks"><b class="kr">右</b>7 8 9 0</span>
+      <span class="ks">选了就锁 · 改不了</span>
+      <span class="ks">超时算说错一句</span>
+      <span class="ks dim">两组比拼：顶栏「甲卷」一键换乙卷</span>
+      <span class="sp"></span>
+      <button class="hmlink" id="goEnd">先看总结 →</button>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════ 第一关（一屏锁定） ══════════ -->
+<section class="scr fit" id="scrLv1">
+  <div class="bar2">
+    <span class="pill lv">第 一 关</span>
+    <span class="pill">并排双赛道</span>
+    <span class="pill" id="l1Set">甲 卷</span>
+    <span class="pill step" id="l1Step">第 1 步 / 共 4 步</span>
+    <span class="pill" id="l1Key">观察</span>
+    <div class="sp"></div>
+    <div class="tm" id="tm1">
+      <span class="lb" id="tm1Lb">限 时</span>
+      <div class="pills" id="tm1Pills"></div>
+      <div class="bar"><i id="tm1Bar"></i></div>
+      <div class="num" id="tm1Num">15<small>″</small></div>
+      <button class="go" id="tm1Go">开 始</button>
+    </div>
+  </div>
+
+  <div class="qbox">
+    <div class="k" id="l1Tip">这一步要说的是 —— 观察</div>
+    <div class="qone">
+      <h3 id="l1Scene">垃圾桶满了三天没人倒</h3>
+      <p id="l1Ask">题目</p>
+      <span class="shuf">你们两个答的是同一道题 —— 四个选项一样，排列顺序不同</span>
+    </div>
+  </div>
+
+  <div class="tracks" id="l1Tracks">
+    <div class="trk L" id="trkL">
+      <div class="th">
+        <div class="who">
+          <span class="dot"></span><span class="nm" id="l1NameL">左同学</span>
+          <span class="sc">选项顺序不同</span>
+        </div>
+        <div class="gaprow">
+          <span class="lb">隔阂值</span>
+          <div class="gapbar"><i id="l1BarL"></i></div>
+          <span class="gapnum" id="l1NumL">50</span>
+        </div>
+      </div>
+      <div class="opts" id="l1OptsL"></div>
+    </div>
+    <div class="trk R" id="trkR">
+      <div class="th">
+        <div class="who">
+          <span class="dot"></span><span class="nm" id="l1NameR">右同学</span>
+          <span class="sc">选项顺序不同</span>
+        </div>
+        <div class="gaprow">
+          <span class="lb">隔阂值</span>
+          <div class="gapbar"><i id="l1BarR"></i></div>
+          <span class="gapnum" id="l1NumR">50</span>
+        </div>
+      </div>
+      <div class="opts" id="l1OptsR"></div>
+    </div>
+  </div>
+
+  <div class="fb" id="l1Fb">
+    <div class="t" id="l1FbT">揭晓</div>
+    <div class="cols" id="l1FbC"></div>
+    <div class="autoline" id="l1Auto"></div>
+    <div class="navrow">
+      <button class="big" id="l1Next">立刻下一步</button>
+      <button class="big ghost" id="l1Hold" style="visibility:hidden">⏸ 停住讲评</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 第一关结算（一屏锁定，复盘区内部滚） ══════════ -->
+<section class="scr fit" id="scrLv1End">
+  <div class="bar2">
+    <span class="pill lv">第 一 关</span>
+    <span class="pill">结算</span>
+    <span class="pill" id="e1Set">甲 卷</span>
+  </div>
+  <div class="ends">
+    <div class="end L">
+      <div class="nm" id="e1NameL">左同学</div>
+      <div class="big" id="e1GapL">0</div>
+      <div class="u">隔阂值（越低越好，起点 50）</div>
+      <div class="verdict" id="e1VerdL"></div>
+    </div>
+    <div class="end R">
+      <div class="nm" id="e1NameR">右同学</div>
+      <div class="big" id="e1GapR">0</div>
+      <div class="u">隔阂值（越低越好，起点 50）</div>
+      <div class="verdict" id="e1VerdR"></div>
+    </div>
+  </div>
+  <div class="who-won" id="e1Win"></div>
+  <div class="recap">
+    <h3>逐 步 复 盘 —— 这一步到底是哪个坑</h3>
+    <div id="e1Recap"></div>
+  </div>
+  <div class="navrow">
+    <button class="big" id="toLv2">进入第二关</button>
+    <button class="big ghost" id="swapSet">换另一套题，再比一组</button>
+    <button class="big ghost" id="backHome1">回开场</button>
+  </div>
+</section>
+
+<!-- ══════════ 第二关（一屏锁定） ══════════ -->
+<section class="scr fit" id="scrLv2">
+  <div class="bar2">
+    <span class="pill lv">第 二 关</span>
+    <span class="pill">轮流对话</span>
+    <span class="pill" id="l2Set">甲 卷</span>
+    <span class="pill step" id="l2Step">第 1 句 / 共 6 句</span>
+    <div class="sp"></div>
+    <div class="tm" id="tm2">
+      <span class="lb" id="tm2Lb">限 时</span>
+      <div class="pills" id="tm2Pills"></div>
+      <div class="bar"><i id="tm2Bar"></i></div>
+      <div class="num" id="tm2Num">15<small>″</small></div>
+      <button class="go" id="tm2Go">开 始</button>
+    </div>
+  </div>
+
+  <div class="chatwrap"><div class="chat" id="l2Chat"></div></div>
+
+  <div class="duo">
+    <div class="pane A" id="paneA">
+      <div class="ph">
+        <span class="dot"></span><span class="nm" id="paneAName">小 A · 组长</span>
+        <span class="sc" id="paneAScore">0 分</span>
+      </div>
+      <div class="pb" id="paneABody"></div>
+    </div>
+    <div class="pane B" id="paneB">
+      <div class="ph">
+        <span class="dot"></span><span class="nm" id="paneBName">小 B · 剪辑</span>
+        <span class="sc" id="paneBScore">0 分</span>
+      </div>
+      <div class="pb" id="paneBBody"></div>
+    </div>
+  </div>
+
+  <div class="fb" id="l2Fb">
+    <div class="t" id="l2FbT">刚才那一步</div>
+    <div id="l2FbC" style="font-size:15px;line-height:1.75;color:var(--ink2)"></div>
+    <div class="autoline" id="l2Auto"></div>
+    <div class="navrow" style="margin-top:10px">
+      <button class="big" id="l2Next">下一句</button>
+      <button class="big ghost" id="l2Hold" style="visibility:hidden">⏸ 停住讲评</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 第二关结算（一屏锁定，复盘区内部滚） ══════════ -->
+<section class="scr fit" id="scrLv2End">
+  <div class="bar2">
+    <span class="pill lv">第 二 关</span>
+    <span class="pill">结算</span>
+    <span class="pill" id="e2Set">甲 卷</span>
+  </div>
+  <div class="ends">
+    <div class="end L">
+      <div class="nm" id="e2NameA">小 A · 组长</div>
+      <div class="big" id="e2ScoreA">0</div>
+      <div class="u">沟通分（满分 70）</div>
+      <div class="verdict" id="e2VerdA"></div>
+    </div>
+    <div class="end R">
+      <div class="nm" id="e2NameB">小 B · 剪辑的同学</div>
+      <div class="big" id="e2ScoreB">0</div>
+      <div class="u">沟通分（满分 70）</div>
+      <div class="verdict" id="e2VerdB"></div>
+    </div>
+  </div>
+  <div class="who-won" id="e2Ending"></div>
+  <div class="recap">
+    <h3>这 场 对 话 里 ，你 说 过 的 每 一 句</h3>
+    <div id="e2Recap"></div>
+  </div>
+  <div class="navrow">
+    <button class="big" id="toEnd">看总结</button>
+    <button class="big ghost" id="backHome2">回开场</button>
+  </div>
+</section>
+
+<!-- ══════════ 收尾（正常滚动） ══════════ -->
+<section class="scr" id="scrEnd">
+  <div class="hero">
+    <span class="eyebrow">非 暴 力 沟 通 · 四 步 法</span>
+    <h1>刚才那两关，你踩了哪一个坑？</h1>
+    <p>四步里每一步都有一个"看起来最像答案"的错误选项。下面这张表，把它拆开给你看。</p>
+  </div>
+
+  <div class="four">
+    <div class="s">
+      <div class="k">第 一 步</div>
+      <h4>观察</h4>
+      <p>只说<b>拍得下来、数得出来</b>的东西：时间、次数、具体动作。<br>"最近三天""三次"是观察。</p>
+    </div>
+    <div class="s">
+      <div class="k">第 二 步</div>
+      <h4>感受</h4>
+      <p>说<b>你自己心里的情绪</b>：烦躁、难受、没底。<br>不能是"我觉得你……"——那后面跟的全是给他贴的标签。</p>
+    </div>
+    <div class="s">
+      <div class="k">第 三 步</div>
+      <h4>需要</h4>
+      <p>说<b>你缺什么</b>：睡眠、安心、知道东西在哪。<br>"尊重"太抽象，"别打游戏了"那不是需要，是请求。</p>
+    </div>
+    <div class="s">
+      <div class="k">第 四 步</div>
+      <h4>请求</h4>
+      <p><b>具体、做得到、并且允许对方说不。</b><br>"十二点后戴耳机"是请求；"你必须"是命令；"再这样我就找宿管"是威胁。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>四个坑，一个比一个像对的</h3>
+    <p style="color:var(--ink3);font-size:14.5px">下面这四个例子用的是课上那个宿舍的场景 —— 两关游戏里你们踩的是别的坑，但坑的形状是同一个。</p>
+    <div class="traps">
+      <div class="trap">
+        <div class="bad">✗　"你怎么天天半夜打游戏"</div>
+        <div class="good">"天天""老是""从来"——这些是<b>概括</b>，不是观察。对方听到第一反应是反驳"我哪有天天"，而不是听你后面说什么。<br>
+        <b>✓ 改成：最近三天，十二点以后……</b></div>
+      </div>
+      <div class="trap">
+        <div class="bad">✗　"我觉得你很自私"</div>
+        <div class="good">这是<b>最隐蔽的一个坑</b>。"我觉得你……"听起来像在说感受，其实是在下判断——<b>"自私"是你给他贴的标签，不是你的情绪。</b><br>
+        <b>✓ 改成：这让我有点烦躁，也很难入睡。</b></div>
+      </div>
+      <div class="trap">
+        <div class="bad">✗　"你能不能考虑一下别人？"</div>
+        <div class="good">这是<b>请求</b>，不是需要——而且是个带指责的请求。需要说的是<b>你自己缺什么</b>，不是要对方变成什么样。<br>
+        <b>✓ 改成：我需要保证七小时睡眠，第二天才有精神。</b></div>
+      </div>
+      <div class="trap">
+        <div class="bad">✗　"你必须十二点前关电脑"</div>
+        <div class="good">这是<b>命令</b>。命令和请求的区别不在语气，在于<b>对方有没有说不的空间</b>。所以请求用"能不能……好吗"，而且要给得出具体的动作。<br>
+        <b>✓ 改成：十二点以后，能不能戴上耳机或者把音量降下来？</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>还有第五个坑：超时</h3>
+    <p>刚才那一局里，如果有人在倒计时结束前什么也没说，他会被按<b>"说错一句"</b>扣分。这不是为了惩罚手慢 ——</p>
+    <p><b>在真实的宿舍和小组里，沉默本身也是一种回应。</b>对方收到的不是"他在认真想"，而是"这事不重要"或者"懒得跟你说"。
+       说错话至少还留了个话头给对方接；不接话，是把话头直接扔了。</p>
+  </div>
+
+  <div class="card">
+    <h3>留着下课前讨论的三个问题</h3>
+    <ul class="qs">
+      <li>第二关里，<b>你说了哪一句之后，对方的语气明显变了？</b>那句话你本来想达到什么效果？</li>
+      <li>如果对方先用了暴力的说法（评判、命令、威胁），<b>你还愿不愿意用四步法回应他？</b>为什么？</li>
+      <li>四步法里，<b>你觉得最难的是哪一步？</b>是说不出口，还是说出来觉得"太软了、不像我"？</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>接下来 —— 换成你自己的事</h3>
+    <p>刚才那四道题都是别人的事。现在换你手里的：<b>同桌两人，用四步法，对一件真实的、让你有点不舒服的小事，做一次沟通练习。</b>一人说，另一人只倾听、不反驳、不解释。说完交换。</p>
+    <p style="color:var(--ink3)">说的时候记住：<b>不要跳过第三步。</b>大多数人失败不是败在"不会说"，是败在"直接从观察跳到请求"——对方不知道你为什么提这个要求，就只会觉得你在管他。</p>
+    <div class="navrow">
+      <button class="big" id="backHome3">回开场，再来一局</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+
+/* ══════════════════════════════════════════════════════════
+   超 时 的 两 句 话
+   ══════════════════════════════════════════════════════════ */
+var TO_L1 = '⏱ 超时了 —— 这一句你没开口。<br><br>' +
+  '沉默本身也是一种回应：对方收到的不是「他在想」，而是「这事不重要」或者「懒得跟你说」。<br>' +
+  '在真实宿舍里，这往往<b>比说错话更伤关系</b> —— 说错话至少还留了个话头给对方接。<br><br>' +
+  '这一句按说错算：<b>隔阂值 +10</b>。';
+var TO_L2 = '⏱ 超时了 —— 这句你没接。<br><br>' +
+  '在冲突里，<b>不回应本身就是一种回应</b>。对方不会把你的沉默理解成「他在认真想」，' +
+  '他会把它填成他能想到的最坏的那个意思。<br><br>' +
+  '这一句按说错算：<b>沟通分 −10</b>。';
+
+/* ══════════════════════════════════════════════════════════
+   题 库
+   ══════════════════════════════════════════════════════════ */
+
+/* 第一关 · 两条赛道各一套题。d = 隔阂值变化（正=更隔阂，负=消隔阂）
+   ok: y 正确 / h 半个对 / n 错 */
+/* ══════════════════════════════════════════════════════════
+   题 库 —— 两 套 题
+   第一关和第二关各有「甲卷 / 乙卷」两套，顶栏那个按钮一键换。
+   两套题里每一步的分值都逐项对齐（只是打乱了选项顺序），
+   所以两个组比出来的隔阂值，可以直接放在一起看。
+   d = 隔阂值变化（正 = 更隔阂，负 = 消隔阂）；ok: y 正确 / h 半个对 / n 错
+   第二关 s = 沟通分变化；上一句得分决定「气氛」，气氛差时还说错话额外扣 5
+   ══════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════
+   题 库 —— 两 套 题
+   同一个组的两个同学拿到的是【同一道题】—— 四个选项一个字都不差，
+   只是排列顺序被换过了。ordR 就是右边那位（7 8 9 0）看到的顺序：
+   ordR[2] = 3 意思是"右边第 3 个位置，放的是原题里的第 4 个选项"。
+   四条位置上的排列都是错排（没有一项停在原位），所以照抄旁边那位的
+   序号一定是错的 —— 想赢只能自己把那句话读出来。
+   两套题（甲卷 / 乙卷）场景不同，但每一步四个选项的 d / ok 逐项对齐，
+   全对都是 −60、全错都是 +60，所以两组比出来的隔阂值可以直接摆一起看。
+   d = 隔阂值变化（正 = 更隔阂，负 = 消隔阂）；ok: y 正确 / h 半个对 / n 错
+   第二关 s = 沟通分变化；上一句得分决定「气氛」，气氛差时还说错话额外扣 5
+   ══════════════════════════════════════════════════════════ */
+var SETS1 = [
+{
+  id:'甲', name:'甲 卷', desc:'垃圾桶满了三天没人倒', case:'垃圾桶满了三天没人倒',
+  steps:[
+    { k:'观察', ask:'周三晚上九点你回宿舍，垃圾桶里的外卖盒和果皮已经堆到桶口外面。它是周一开始满的 —— 三天了，这周值日的两个人谁也没动。你决定开口，第一句该说什么？',
+      opts:[
+        { t:'你们能不能有点公德心，垃圾堆成这样也当没看见', d:15, ok:'n',
+          why:'「你们」把本来两个人的事扩大到了全宿舍，「公德心」是给他贴的标签。对方听到这句话的第一反应是反驳「我又不是值日」或者「又不是我一个人的垃圾」，而不是去提那个袋子。' },
+        { t:'这袋垃圾从周一就满了，今天周三了，还没人倒', d:-15, ok:'y',
+          why:'有起点（周一）、有终点（今天）、有具体的东西（这袋垃圾）。全是能核对的事实，他没法跟你争「满没满」，只能接着谈「那怎么办」。' },
+        { t:'算了，我自己拿下去吧', d:5, ok:'n',
+          why:'你没吵，但你的需要一个字都没说 —— 这次你替他们倒了，下次还是这样。攒到第四次、第五次，倒的就不是垃圾了，是关系。' },
+        { t:'是不是又没人倒垃圾', d:10, ok:'n',
+          why:'「是不是」是猜，「又」是概括。你问的不是事实，是你心里的那口气。' }
+      ]},
+    { k:'感受', ask:'事实说清楚了。接下来该说你的感受 —— 注意，这一步有个最像答案的坑。',
+      opts:[
+        { t:'我没啥感觉，反正我很少在宿舍', d:5, ok:'n',
+          why:'你很少在宿舍，可你今天站在垃圾桶前面开口了 —— 没感觉是假的。我们压下去的不是感受，只是表达。' },
+        { t:'我觉得你们根本不在乎别人住得舒不舒服', d:15, ok:'n',
+          why:'★ 这是四步法里最隐蔽的坑。「我觉得你……」听起来像在说感受，其实后面跟的是判断 —— 「不在乎别人」是你给他下的定义，不是你的情绪。' },
+        { t:'屋里那股味儿让我有点烦躁，一进门就想赶紧开窗', d:-15, ok:'y',
+          why:'「烦躁」是你自己心里的状态，只有你知道，他没法跟你争。后半句还顺手说清了这件事具体怎么影响你 —— 感受越具体，对方越容易听进去。' },
+        { t:'我挺生气的', d:-5, ok:'h',
+          why:'方向对了 —— 「生气」确实是你的情绪。但它太笼统了。加上「一进门就想赶紧开窗」这种具体的，对方才知道这事对你到底意味着什么。' }
+      ]},
+    { k:'需要', ask:'感受说完了。现在说你缺什么 —— 第三步是最容易被跳过的一步，也恰恰是最不能跳过的。',
+      opts:[
+        { t:'你们能不能自觉一点', d:10, ok:'n',
+          why:'这是请求，而且是带指责的请求。需要说的是「我缺什么」，不是「你该变成什么样」。' },
+        { t:'我需要一个干净的地方待着 —— 下了课回来能松口气', d:-15, ok:'y',
+          why:'「干净」「能松口气」是你真正缺的东西。说出需要最大的好处是：它把你从「我在管你们」变成了「我在解决我的问题」，对方就不容易觉得被攻击。' },
+        { t:'我需要你们尊重我', d:-5, ok:'h',
+          why:'方向对了，但「尊重」太大 —— 他没法知道具体要做什么。真正具体的是「干净」「能松口气」「知道东西在哪儿」这种。' },
+        { t:'我需要你们把垃圾倒了', d:5, ok:'n',
+          why:'这是「要求对方做什么」，不是「我需要什么」。区别在于：需要能被很多种方式满足，要求只有一种。' }
+      ]},
+    { k:'请求', ask:'最后一步。请求要满足三件事：具体、做得到、并且允许对方说不。',
+      opts:[
+        { t:'这袋现在能不能先拿下去？以后满了谁看见谁带，行吗？', d:-15, ok:'y',
+          why:'先说眼前这一袋（今天就能做），再说以后怎么办（长期规则），最后是个问句 —— 给了对方说不的空间。这才是请求，不是命令。' },
+        { t:'以后注意点就行', d:0, ok:'n',
+          why:'「注意点」不是一个能执行的动作。他点头了，然后什么也不会变 —— 因为你们俩都不知道「注意」具体指什么。' },
+        { t:'再没人倒，我就把垃圾堆到你们床边去', d:20, ok:'n',
+          why:'这是威胁。你可能真的赢下这一晚，但从今晚起，宿舍里多了一个「她会把垃圾堆到床边」的人设。垃圾清了，关系没了。' },
+        { t:'以后垃圾每天必须倒掉，谁最后一个出门谁负责', d:15, ok:'n',
+          why:'这是命令。命令和请求的差别不在语气好不好听，在于对方有没有说不的余地 —— 「必须」里没有。' }
+      ]}
+  ],
+  /* 右边那份（7 8 9 0）的排列：四步全是错排，且正确项的位置和左边处处不同 */
+  ordR:[ [1,0,3,2], [1,2,3,0], [2,3,1,0], [1,2,3,0] ]
+},
+{
+  id:'乙', name:'乙 卷', desc:'借出去的 200 块他没提', case:'借出去的 200 块，他一直没提',
+  steps:[
+    { k:'观察', ask:'上个月你借给这个朋友 200 块交话费，他说发了生活费就还。一个月过去了，他前天刚买了双新鞋，钱的事一个字没提。你决定开口，第一句该说什么？',
+      opts:[
+        { t:'你是不是压根就没打算还我', d:15, ok:'n',
+          why:'「是不是」是猜测，「压根」是你替他定的性。你问的不是钱，是你心里的判断 —— 他只能先辩解「我没有」，然后你们就开始吵「你有没有」。' },
+        { t:'算了，200 块钱', d:5, ok:'n',
+          why:'嘴上说算了，心里记了一笔。而且对方收到的信息是「这事过去了」，下次再开口就更难 —— 因为你会觉得自己小气。' },
+        { t:'上个月我借你的 200 块，到今天还没还', d:-15, ok:'y',
+          why:'有金额、有时间、有具体的事。这是能核对的观察，他没法反驳「我没借过」，只能回应「什么时候还」。' },
+        { t:'你鞋都买了，就不想着还我钱', d:10, ok:'n',
+          why:'「就不想着」是评判，而且把两件事绑在了一起 —— 他买什么，跟你借钱是两码事。绑在一起说，他听到的是羞辱，不是提醒。' }
+      ]},
+    { k:'感受', ask:'事实说清楚了。现在说你自己的感受 —— 小心那个最像答案的坑。',
+      opts:[
+        { t:'我觉得你这人挺不靠谱的', d:15, ok:'n',
+          why:'★ 和「我觉得你很自私」是同一个坑。「不靠谱」是你给他贴的标签，不是你的情绪。你的情绪可能是「别扭」「张不开嘴」—— 那才是真的。' },
+        { t:'我有点别扭，每次想提又觉得张不开嘴', d:-15, ok:'y',
+          why:'「别扭」「张不开嘴」都是你自己的状态，描述的是你，不是他。这就是感受 —— 而且它说出了真正难的地方：不是那 200 块，是开口本身。' },
+        { t:'我无所谓，你先用着', d:5, ok:'n',
+          why:'无所谓的人不会走到他面前说这句。你说「无所谓」的时候，其实已经把这件事又压回心里了。' },
+        { t:'我挺不高兴的', d:-5, ok:'h',
+          why:'方向对，但太笼统。补一句「每次想提又觉得张不开嘴」，对方才知道你真正在意的不只是那 200 块，是「咱们之间开始有话不能直说了」。' }
+      ]},
+    { k:'需要', ask:'现在说你缺什么。注意别把「请求」当成「需要」。',
+      opts:[
+        { t:'你能不能讲点信用', d:10, ok:'n',
+          why:'这是请求，还是带指责的那一种。需要说的是你缺什么，不是给他上品德课。' },
+        { t:'我需要你说话算话', d:-5, ok:'h',
+          why:'方向对了，但这是在要求他成为什么样的人。需要说的是你自己的处境 —— 你缺的是「心里清爽」「不用每次见面前先想一下」。' },
+        { t:'我需要你把钱还我', d:5, ok:'n',
+          why:'「把钱还我」是具体动作，不是需要。需要能被很多种方式满足 —— 分期、先说个时间、先还一半，都可以。' },
+        { t:'我需要咱们之间不用绕弯子 —— 我不想每次见你都要先想一下这件事', d:-15, ok:'y',
+          why:'这是你真正缺的东西：不是 200 块，是「关系里能直说」。这句话一说出来，对方就知道你不是来讨债的，是来把这件事从两个人中间挪开的。' }
+      ]},
+    { k:'请求', ask:'最后一步。具体、做得到、允许对方说不。',
+      opts:[
+        { t:'你自己看着办吧', d:0, ok:'n',
+          why:'「看着办」不是请求，是把球扔回去。他要是知道怎么办，这一个月早就办了。' },
+        { t:'这个月之内你必须还清', d:15, ok:'n',
+          why:'这是命令。而且你手里并没有让对方必须低头的筹码 —— 这句话换来的多半是「我又没说不还」，然后不了了之。' },
+        { t:'这个月能不能先还 100？剩下一半下个月给我也行', d:-15, ok:'y',
+          why:'具体（100）、做得到（分两次）、是问句（允许说不）。而且它给了对方台阶 —— 一个真还不上的人，也能接住这半句。' },
+        { t:'再不还我就发到群里问你了', d:20, ok:'n',
+          why:'威胁。钱可能真的要回来了，但从这一句起，你们的关系里多了一件他知道的事：你有办法让他难堪。这 200 块买断的是一段朋友。' }
+      ]}
+  ],
+  ordR:[ [2,0,3,1], [2,3,1,0], [1,3,0,2], [1,0,3,2] ]
+}
+];
+
+/* 第二关 · 六句轮流对话。两套题的对白不同，但每一句的最高分逐项对齐（25/25/25/25/20/20），
+   所以 A、B 两边满分都是 70，两个组可以放在一起比。 */
+var SETS2 = [
+{
+  id:'甲', name:'甲 卷',
+  cast:{ A:'小 A · 组长', B:'小 B · 剪辑' },
+  intro:'明天上午 10 点交小组微视频作业。你是组长小A —— 片子还没到，群里 @ 小B 几次也没回。',
+  end:{
+    good:'片子在明早十点交上了。<br>而且下学期再分组，你俩还愿意分到一起。',
+    goodS:'这不是运气好。是你们在每一次被冒犯、每一次想反击的时候，都选了另一条路。',
+    bad:'片子没交上。<br>而且你俩以后不会再主动找对方合作了。',
+    badS:'从头看一遍：两个人都不是坏人，但每一句都在把对方往防守的位置推。',
+    mid:'片子最后还是交上了。<br>但这场对话里，有人心里留了个疙瘩。',
+    midS:'事情办成了，关系却没往前走 —— 这是最常见、也最容易被忽略的一种结果。'
+  },
+  turn:[
+    { who:'A',
+      opts:[
+        { t:'你到底还做不做？不做早说，我们换人', s:-20, ok:'n',
+          why:'威胁加评判。这句话确实可能逼出片子，但同时把对方推到了防守位置 —— 他接下来要么反击，要么彻底不干了。' },
+        { t:'群里 @ 你几次没回，片子也还没到我这儿。想问问你那边什么情况', s:25, ok:'y',
+          why:'纯观察 + 一个开放的问题，而且没有预设他有错。「想问问你那边什么情况」这句给了对方台阶 —— 这是整场对话能不能走下去的关键。' },
+        { t:'算了，我自己剪吧', s:-5, ok:'n',
+          why:'表面上是解决问题，实际上是把怨气存了起来。而且你越界把别人的活揽过来，对方反而失去了参与的机会。' },
+        { t:'你是不是根本不想干了', s:-15, ok:'n',
+          why:'猜测动机。你问的不是情况，是一个指责的伪装 —— 对方听到的只有「你在给这件事定性」。' }
+      ]},
+    { who:'B',
+      opts:[
+        { t:'我这不是在做吗，你催什么催', s:-20, ok:'n',
+          why:'反击。你确实可以说出这句话，但它只会让对面也更硬 —— 两个人开始比谁更委屈，片子的事没人管了。' },
+        { t:'是，我这几天确实没交，也没回消息。三门课考试堆一起了，实在顾不过来。你那么说，我挺难受的', s:25, ok:'y',
+          why:'三步都走到了：承认事实（不辩解）、说自己的处境（不是借口，是信息）、说自己的感受（不攻击对方）。被指责的时候还能这样回应，是很难的，也是最有用的。' },
+        { t:'行行行，我知道了，别说了', s:-10, ok:'n',
+          why:'敷衍。它能让对方暂时闭嘴，但什么也没解决 —— 明天上午十点，片子还是不在。' },
+        { t:'（低头继续戴耳机，不接话）', s:-15, ok:'n',
+          why:'沉默也是一种回应。而且它是最消耗关系的一种 —— 对方会把你的沉默，填成他能想到的最坏的意思。' }
+      ]},
+    { who:'A',
+      opts:[
+        { t:'你难受？我催你这么多天我不难受？', s:-20, ok:'n',
+          why:'比惨。对方刚把心里的东西掏出来，你回了一句「我比你更惨」—— 他下次就不会再掏了。' },
+        { t:'我才知道你这周三门考试，那我先跟你道个歉。片子的事，我们能不能想想还有别的办法', s:25, ok:'y',
+          why:'先接住对方的感受（道歉不是为了认错，是为了承认「我不知道你那么难」），再把话题转向解决。这一句把两个人从对立面拉到了同一侧。' },
+        { t:'那你到底什么时候能交', s:-8, ok:'n',
+          why:'只问结果，没接住对方刚刚说的那句「我挺难受的」。事情可能推进了，但关系上你刚刚错过了一次。' },
+        { t:'算了，跟你说不通', s:-15, ok:'n',
+          why:'撤。这是把门关上 —— 而且是在对方刚刚示弱之后关的，杀伤力比一开始就吵起来还大。' }
+      ]},
+    { who:'B',
+      opts:[
+        { t:'我不用你道歉，你少说两句就行', s:-15, ok:'n',
+          why:'对方递过来的台阶被你踢回去了。很多人会本能地这样 —— 因为在气头上，接受对方的好意像是自己输了。' },
+        { t:'谢谢你这么说。素材和工程文件都在我电脑里，要不我今晚先导个粗剪，明早你接过去加字幕', s:25, ok:'y',
+          why:'接住了对方的好意，并且立刻给出了一个具体、能执行的新方案。冲突真正被解决的时刻，往往就是有人先拿出方案的那一刻。' },
+        { t:'我也不太清楚，看吧', s:-10, ok:'n',
+          why:'模糊回应。对方需要的不是态度，是一个时间点 —— 「看吧」等于把球又扔回去了。' },
+        { t:'随便你吧', s:-15, ok:'n',
+          why:'放弃。它听起来像是让步，其实是退出 —— 而且把责任全推给了对方。' }
+      ]},
+    { who:'A',
+      opts:[
+        { t:'行，那就辛苦你了。明早八点我去找你拿', s:20, ok:'y',
+          why:'确认方案 + 说定时间 + 一句「辛苦你了」。最后那句不是客套 —— 它告诉对方「我知道你在付出」，这是下一次他还愿意配合的原因。' },
+        { t:'早这样不就行了', s:-15, ok:'n',
+          why:'赢了嘴上这一下，代价是对方刚建立起来的合作意愿。这句话一出口，明早那八点就变得很不确定。' },
+        { t:'你别又拖啊', s:-12, ok:'n',
+          why:'不信任的提醒。它把对方刚给的那个方案，提前否定了一次 —— 而他本来可能真的会做到。' },
+        { t:'嗯', s:0, ok:'n',
+          why:'不算错，但浪费了一次把关系往前推的机会。对方给了具体的方案，你只回一个字，他会不确定你到底接没接受。' }
+      ]},
+    { who:'B',
+      opts:[
+        { t:'嗯，明早八点。要是没导完我提前跟你说', s:20, ok:'y',
+          why:'确认时间 + 提前预告风险。最后这半句是成熟合作里最值钱的一句话 —— 它让对方不用猜，也不用等到明天上午十点才发现出事了。' },
+        { t:'我尽量吧', s:-8, ok:'n',
+          why:'留了个活口。你以为这是给自己留余地，实际上对方从这一刻起就开始做最坏的打算了。' },
+        { t:'那也得看我今晚有没有空', s:-12, ok:'n',
+          why:'在最后一步反悔。前面的对话全白费了 —— 而且这一次，对方不会再有多少耐心重来一遍。' },
+        { t:'知道了知道了', s:-10, ok:'n',
+          why:'敷衍。事情会做，但对方听到的是「你很烦」。下一次他宁愿自己干，也不找你了。' }
+      ]}
+  ]
+},
+{
+  id:'乙', name:'乙 卷',
+  cast:{ A:'小 A · 高中同学', B:'小 B · 高中同学' },
+  intro:'你和小B是高中就在一起的朋友，现在同校不同班。这周你约了他三次，他三次都说有事。今晚你刷到他跟别人出去玩的照片 —— 就是今天下午。',
+  end:{
+    good:'周六下午三点，他来了，还先说了那句「我最近挺难的」。<br>你们的关系从这一晚开始，比之前更近了一点。',
+    goodS:'这不是运气好。是你在他躲着你的时候，选了「问」而不是「断」；是他被问住的时候，选了「说」而不是「辩」。',
+    bad:'周六他也没来。<br>你们谁都没有再提这件事，也谁都没有再约谁。',
+    badS:'从头看一遍：两个人都不是坏人。但每一次「算了」「随便」，都在把对方往更远的地方推一步。',
+    mid:'周六你们见了，坐了四十分钟。<br>有些话还是没说出来，但至少没断。',
+    midS:'关系没往前走，也没断 —— 这是最常见、也最容易被忽略的一种结果。下一次，还得有人先开口。'
+  },
+  turn:[
+    { who:'A',
+      opts:[
+        { t:'你到底还当不当我是朋友？不当就直说', s:-20, ok:'n',
+          why:'一句话把选择题甩给他：要么承认不把你当朋友，要么就得低头。人被这样问的时候，两个答案都不想选，于是多半会选第三个 —— 走开。' },
+        { t:'这周我约了你三次，你都说有事。我刚看到你今天下午发的照片 —— 我想直接问问你', s:25, ok:'y',
+          why:'前半句是纯事实（三次、今天下午），后半句是一个开放的问题，而且没给他定性。「我想直接问问你」这句留了台阶 —— 他不用先认错，也能开口。' },
+        { t:'算了，当我没约过', s:-5, ok:'n',
+          why:'表面上是计较，其实是把这件事封起来了。而且他会松一口气 —— 因为最难的对话不用发生了，你们也就停在这儿了。' },
+        { t:'你是不是不想跟我玩了', s:-15, ok:'n',
+          why:'猜测动机。你问的不是情况，是一个指责的伪装 —— 他听到的只有「你在给这件事定性」。' }
+      ]},
+    { who:'B',
+      opts:[
+        { t:'我跟谁出去还要跟你报备吗', s:-20, ok:'n',
+          why:'反击。你确实可以这么说，但它会让对面立刻也硬起来 —— 两个人开始比谁更有理，真正的事（你最近怎么了）没人碰。' },
+        { t:'是，我这周是躲了你。我最近状态特别差，跟你在一块儿我得装没事，我累。对不起', s:25, ok:'y',
+          why:'三步都走到了：承认事实（不辩解）、说自己的处境（不是借口，是信息）、说自己的感受，最后一句道歉。被质问的时候还能这样回应，很难，也最有用。' },
+        { t:'没有啊，你想多了', s:-10, ok:'n',
+          why:'否认。它能让对方暂时没话说，但两个人心里都清楚不是「想多了」—— 下一次他连问都不会问了。' },
+        { t:'（低头看手机，不接话）', s:-15, ok:'n',
+          why:'沉默也是一种回应，而且是最消耗关系的一种。对方会把你的沉默，填成他能想到的最坏的那个意思。' }
+      ]},
+    { who:'A',
+      opts:[
+        { t:'我不知道你最近这么难。我不是要你报备 —— 我是觉得你把我推开了，这个我难受', s:25, ok:'y',
+          why:'先接住对方的处境（「我不知道」是承认，不是认输），再把自己的感受说清楚。这一句把两个人从「谁对谁错」拉到了「咱们之间怎么了」。' },
+        { t:'你累？我等你三次我不累？', s:-20, ok:'n',
+          why:'比惨。对方刚把心里最难受的部分掏出来，你回了一句「我比你更惨」—— 他下次就不会再掏了。' },
+        { t:'那你到底什么时候有空', s:-8, ok:'n',
+          why:'只问安排，没接住刚刚那句「我最近状态特别差」。事可能推下去了，但关系上你刚错过一次。' },
+        { t:'算了，跟你说不通', s:-15, ok:'n',
+          why:'撤。而且是对方刚示弱之后撤的 —— 这一句比一开始就吵起来还伤人。' }
+      ]},
+    { who:'B',
+      opts:[
+        { t:'不用你管，我自己能处理', s:-15, ok:'n',
+          why:'对方递过来的手被你推开了。很多人会本能地这样 —— 因为接受别人的关心，像是承认自己撑不住。' },
+        { t:'谢谢你没急着骂我。要不周六我不去看比赛了，咱俩找个地方坐坐，我跟你好好说说', s:25, ok:'y',
+          why:'先接住对方的好意，再立刻给出一个具体的安排。冲突真正开始转的时候，往往就是有人先拿出方案的那一刻。' },
+        { t:'我也不知道该怎么办', s:-10, ok:'n',
+          why:'把问题原样还回去。对方要的不是一个答案，是一个「你愿意说」的信号 —— 这一句把这扇门又关上了。' },
+        { t:'随便吧', s:-15, ok:'n',
+          why:'放弃。它听起来像让步，其实是退出 —— 而且把「要不要继续」的担子全推给了对方。' }
+      ]},
+    { who:'A',
+      opts:[
+        { t:'你早该跟我说了', s:-12, ok:'n',
+          why:'赢了嘴上这一下，代价是他刚建立起来的开口意愿。这句话一出口，周六那场见面就变得很不确定。' },
+        { t:'行。周六下午三点，老地方。你要是不想说，我们就坐着吃个饭也行', s:20, ok:'y',
+          why:'确认方案 + 定下时间 + 一句「不说也行」。最后那句不是客套 —— 它告诉对方「你可以不完美」，这才是他真的会来的原因。' },
+        { t:'那你以后别再这样了', s:-15, ok:'n',
+          why:'在对方刚答应你的时候先立规矩。你确实有这个权利，但此刻说，等于在提醒他「你还欠我一次」。' },
+        { t:'嗯', s:0, ok:'n',
+          why:'不算错，但浪费了一次把关系往前推的机会。他刚给出具体的安排，你只回一个字，他会不确定你到底接没接受。' }
+      ]},
+    { who:'B',
+      opts:[
+        { t:'那也得看我那天心情', s:-12, ok:'n',
+          why:'在最后一步反悔。前面五句全白费了 —— 而且这一次，对方不会再有多少耐心重来一遍。' },
+        { t:'好，周六三点，我订个位子，我请。要是我临时又怂了，我提前跟你说', s:20, ok:'y',
+          why:'确认时间 + 主动担一点成本 + 提前预告风险。最后那半句是成熟关系里最值钱的一句话 —— 它让对方不用猜，也不用等到那天下午三点才发现你不来。' },
+        { t:'我尽量吧', s:-8, ok:'n',
+          why:'留了个活口。你以为这是给自己留余地，实际上对方从这一刻起就开始做最坏的打算了。' },
+        { t:'知道了知道了', s:-10, ok:'n',
+          why:'敷衍。事可能会办，但对方听到的是「你很烦」。下一次他宁愿自己待着，也不找你了。' }
+      ]}
+  ]
+}
+];
+
+/* 当前用的是哪一套 —— 顶栏那个按钮切的就是这两个变量 */
+var SET  = SETS1[0];
+var SET2 = SETS2[0];
+
+/* ══════════════════════════════════════════════════════════
+   状 态
+   ══════════════════════════════════════════════════════════ */
+var S = {
+  solo:false, paused:false, set:0, review:false,
+  L1:{ step:0, locked:false,
+       L:{gap:50,pick:null,over:false,log:[]},
+       R:{gap:50,pick:null,over:false,log:[]} },
+  L2:{ turn:0, lastScore:null, done:false,
+       A:{score:0,log:[]}, B:{score:0,log:[]} }
+};
+
+var $ = function(id){ return document.getElementById(id); };
+var KEYL = ['1','2','3','4'], KEYR = ['7','8','9','0'];
+var DURS = [[0,'不限时'],[10,'10″'],[15,'15″'],[20,'20″'],[30,'30″']];
+
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+function hue(gap){ return 145 - gap*1.4; }
+function barColor(gap){ return 'hsl('+hue(gap)+',72%,56%)'; }
+
+/* ══════════════════════════════════════════════════════════
+   限 时 引 擎
+   ══════════════════════════════════════════════════════════ */
+/* armed = 本关已经按过一次「开始」→ 之后每一步一出现就自动跑 */
+var TM = { sec:15, remain:0, open:false, h:null, at:0, pfx:'tm1', onEnd:null, pills:true, armed:false };
+
+function tmClear(){ if (TM.h){ clearInterval(TM.h); TM.h = null; } }
+
+/* 时长只在每一关的第一题铺开选一次；之后收成一个小标签 +「改」 */
+function tmPills(){
+  var box = $(TM.pfx + 'Pills');
+  if (!box) return;
+  box.innerHTML = '';
+  if (S.review){                       /* 讲评模式：不计时，选项一出现就能点 */
+    var rvb = document.createElement('button');
+    rvb.type = 'button';
+    rvb.className = 'cur';
+    rvb.textContent = '不限时 · 讲评';
+    box.appendChild(rvb);
+    var lbr = $(TM.pfx + 'Lb');
+    if (lbr) lbr.textContent = '讲 评 模 式';
+    return;
+  }
+  if (TM.pills){
+    DURS.forEach(function(d){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = d[1];
+      if (TM.sec === d[0]) b.className = 'on';
+      b.addEventListener('click', function(){
+        if (TM.sec === d[0]) return;
+        TM.sec = d[0];
+        tmReset();                    /* 换档 = 这一步重新计时，已选的答案不清 */
+      });
+      box.appendChild(b);
+    });
+  } else {
+    var cur = document.createElement('button');
+    cur.type = 'button';
+    cur.className = 'cur';
+    cur.textContent = (TM.sec === 0 ? '不限时' : TM.sec + '″');
+    box.appendChild(cur);
+
+    var chg = document.createElement('button');
+    chg.type = 'button';
+    chg.className = 'chg';
+    chg.textContent = '改';
+    chg.addEventListener('click', function(){ TM.pills = true; tmPills(); });
+    box.appendChild(chg);
+  }
+  var lb = $(TM.pfx + 'Lb');
+  if (lb) lb.textContent = TM.pills ? '限 时 · 定一次，后面自动开跑' : '限 时';
+}
+
+function tmReset(){
+  tmClear();
+  TM.remain = TM.sec * 1000;
+  TM.open   = (TM.sec === 0 || S.review);   /* 不限时 / 讲评模式 = 立刻可答 */
+  tmPills();
+  tmPaint();
+  /* 第一题已经按过「开始」了 —— 后面的每一步一出现就自动跑，不用老师再按 */
+  if (TM.armed && !S.review && TM.sec > 0 && !S.paused) tmStart(false);
+}
+
+/* force = true 表示"重新计时"（把这一步的倒计时从头再来一遍） */
+function tmStart(force){
+  if (TM.sec === 0 || S.review || S.paused) return;
+  if (TM.open && !force) return;   /* 连点「开始」不会把倒计时重开 */
+  TM.armed = true;
+  TM.open  = true;
+  TM.at    = Date.now();
+  tmClear();
+  TM.h = setInterval(tmTick, 100);
+  tmPaint();
+}
+
+function tmTick(){
+  var now = Date.now();
+  TM.remain -= (now - TM.at);
+  TM.at = now;
+  if (TM.remain <= 0){
+    TM.remain = 0;
+    tmClear();
+    tmPaint();
+    var f = TM.onEnd; TM.onEnd = null;
+    if (f) f();
+    return;
+  }
+  tmPaint();
+}
+
+function tmPause(){ if (TM.h) tmClear(); }
+
+function tmResume(){
+  if (TM.sec === 0 || S.review || !TM.open || TM.h || TM.remain <= 0) return;
+  TM.at = Date.now();
+  TM.h = setInterval(tmTick, 100);
+}
+
+function tmPaint(){
+  var p = TM.pfx, box = $(p);
+  if (!box) return;
+  var num = $(p+'Num'), bar = $(p+'Bar'), go = $(p+'Go');
+  var free = (TM.sec === 0 || S.review);
+  box.classList.toggle('free', free);
+
+  if (free){
+    num.className = 'num';
+    num.innerHTML = '∞';
+    bar.style.width = '100%';
+    go.style.display = 'none';
+  } else {
+    go.style.display = '';
+    go.disabled = false;
+    if (TM.armed){
+      /* 已经起跑过：这个按钮不再是"必按的开始"，而是"没准备好的话重来一次" */
+      go.textContent = '重新计时';
+      go.classList.add('again');
+      go.classList.remove('pulse');
+    } else {
+      go.textContent = '开 始';
+      go.classList.remove('again');
+      go.classList.toggle('pulse', !S.paused);
+    }
+
+    var frac = TM.remain / (TM.sec * 1000);
+    bar.style.width = (frac * 100) + '%';
+    bar.style.background = frac > .5 ? 'var(--t1)' : (frac > .25 ? 'var(--t2)' : 'var(--t5)');
+
+    num.className = 'num' + (frac <= .25 ? ' hot' : (frac <= .5 ? ' warn' : ''));
+    num.innerHTML = Math.ceil(TM.remain / 1000) + '<small>″</small>';
+  }
+  refreshLock();
+}
+
+/* 没按"开始"之前，选项是灰的、点了没反应 —— 两个人谁也别抢跑 */
+function l2PicksBox(){ return document.querySelector('.pane.act .picks'); }
+
+function refreshLock(){
+  var locked = S.paused || !TM.open;
+  ['l1OptsL','l1OptsR'].forEach(function(id){
+    var el = $(id);
+    if (el) el.classList.toggle('locked', locked);
+  });
+  var box = l2PicksBox();          /* 第二关的选项长在当前说话人那一侧 */
+  if (box) box.classList.toggle('locked', locked);
+}
+
+function setPause(v){
+  S.paused = v;
+  $('mask').classList.toggle('on', v);
+  $('pauseBtn').textContent = v ? '▶ 继 续' : '⏸ 暂 停';
+  $('pauseBtn').classList.toggle('on', v);
+  if (v){ tmPause(); rvPause(); } else { tmResume(); rvResume(); }
+  tmPaint();
+}
+
+/* ══════════════════════════════════════════════════════════
+   讲 评 模 式
+   就为了一件事：老师想一句一句讲，不想被倒计时和 5 秒翻页推着走。
+   切过去以后 —— 不计时（选项立刻能点）、答完也不自动翻页，
+   全部由老师按「下一题」往下走。学生那边什么都没放松：
+   选了就锁死，改不了。
+   ══════════════════════════════════════════════════════════ */
+function setReview(v){
+  S.review = v;
+  var b = $('reviewBtn');
+  b.classList.toggle('on', v);
+  b.textContent = v ? '👩‍🏫 讲评模式' : '⏱ 自动翻页';
+  b.title = v
+    ? '讲评模式：不计时、答完不自动翻页，全部由老师按「下一题」往下走'
+    : '自动翻页：答完停 5 秒自动进入下一步；计时按顶栏设定的时长';
+
+  rvClear();
+  if ($('scrLv1').classList.contains('on')){
+    if (S.L1.locked) autoOrHint(nextL1, 'l1Auto', '秒后自动进入下一步 · 要细讲按「⏸ 停住讲评」');
+    else tmReset();
+  } else if ($('scrLv2').classList.contains('on')){
+    if (S.L2.done) autoOrHint(nextL2, 'l2Auto', '秒后自动轮到对方 · 要细讲按「⏸ 停住讲评」');
+    else tmReset();
+  }
+  updateNextLabels();
+}
+
+/* ══════════════════════════════════════════════════════════
+   揭 晓 后 的 5 秒 自 动 翻 页（两关共用）
+   第一关：两个人都交完卷 → 揭晓 → 5 秒后自动进入下一步
+   第二关：这一句说完     → 揭晓 → 5 秒后自动轮到对方
+   反馈只停这么久 —— 否则等在后面的那一位先把答案看完了，
+   轮到他时就不是在想"我该怎么说"，而是在挑那个绿勾。
+   想细看：按屏幕上那个大按钮「⏸ 停住讲评」，或者直接按暂停。
+   整节课都想自己控节奏：顶栏点「⏱ 自动翻页」→ 切成讲评模式，
+   不计时、也不自动翻页，答完就停在那儿，等老师按「下一题」。
+   ══════════════════════════════════════════════════════════ */
+var RV = { h:null, left:0, at:0, on:false, held:false, go:null, el:'l2Auto', tip:'' };
+var RV_SEC = 5;
+
+function rvBlank(){
+  ['l1Auto','l2Auto'].forEach(function(id){
+    var o = $(id);
+    if (o) o.innerHTML = '';
+  });
+}
+
+function rvPaint(){
+  var el = $(RV.el);
+  if (!el) return;
+  if (RV.held){
+    el.innerHTML = '⏸ <span class="sk">已停住 —— 讲完按「下一题 / 继续」或回车</span>';
+    return;
+  }
+  if (!RV.on){ el.innerHTML = ''; return; }
+  var frac = RV.left / (RV_SEC * 1000);
+  el.innerHTML = '⏳ <b>' + Math.ceil(RV.left / 1000) + '</b>' +
+    '<span class="rvbar"><i style="width:' + (frac * 100) + '%"></i></span>' +
+    '<span class="sk">' + RV.tip + '</span>';
+}
+
+function rvClear(){
+  if (RV.h){ clearInterval(RV.h); RV.h = null; }
+  RV.on = false; RV.held = false; RV.go = null;
+  rvBlank();
+  syncHold();
+}
+
+function rvStart(go, el, tip){
+  rvClear();
+  RV.go = go; RV.el = el; RV.tip = tip;
+  RV.left = RV_SEC * 1000;
+  RV.on = true;
+  RV.at = Date.now();
+  RV.h = setInterval(rvTick, 100);
+  rvPaint();
+  syncHold();
+}
+
+/* 手动叫停 —— 老师想把这段解析讲透的时候用，不再倒数 */
+function rvHold(){
+  if (!RV.on) return;
+  if (RV.h){ clearInterval(RV.h); RV.h = null; }
+  RV.on = false; RV.held = true;
+  rvPaint();
+  syncHold();
+}
+
+/* 停住之后想接着倒数（不是跳过）—— 按「继续」就从停下的地方走 */
+function rvRelease(){
+  if (!RV.held) return;
+  RV.held = false;
+  RV.on = true;
+  RV.at = Date.now();
+  if (RV.h) clearInterval(RV.h);
+  RV.h = setInterval(rvTick, 100);
+  rvPaint();
+  syncHold();
+}
+
+/* 反馈卡里的那个大按钮：没停 = 停住讲评，停住了 = 继续 */
+var HOLD_BTNS = ['l1Hold','l2Hold'];
+function syncHold(){
+  var live = RV.on || RV.held;
+  HOLD_BTNS.forEach(function(id){
+    var b = $(id);
+    if (!b) return;
+    b.style.visibility = live ? 'visible' : 'hidden';
+    b.textContent = RV.held ? '▶ 继续' : '⏸ 停住讲评';
+  });
+}
+function holdToggle(){
+  if (RV.on) rvHold();
+  else if (RV.held) rvRelease();
+}
+
+/* 讲评模式：不自动翻页，停在揭晓页等老师按「下一题」 */
+function autoOrHint(go, el, tip){
+  if (S.review){
+    var o = $(el);
+    if (o) o.innerHTML = '👩‍🏫 <span class="sk">讲评模式 —— 讲完按下面的按钮继续</span>';
+    syncHold();
+    return;
+  }
+  rvStart(go, el, tip);
+}
+
+function rvTick(){
+  var now = Date.now();
+  RV.left -= (now - RV.at);
+  RV.at = now;
+  if (RV.left <= 0){
+    var g = RV.go;
+    rvClear();
+    if (g) g();
+    return;
+  }
+  rvPaint();
+}
+
+function rvPause(){ if (RV.h){ clearInterval(RV.h); RV.h = null; } }
+function rvResume(){
+  if (!RV.on || RV.h || RV.left <= 0 || !RV.go || RV.held) return;
+  RV.at = Date.now();
+  RV.h = setInterval(rvTick, 100);
+}
+
+/* ══════════════════════════════════════════════════════════
+   导 航
+   v2：滚动发生在 .scr 内部而不是 window，所以回到屏首要重置该屏的 scrollTop
+   ══════════════════════════════════════════════════════════ */
+function show(id){
+  rvClear();                       /* 换屏一律取消挂着的自动翻页，免得跳到别的关还被推着走 */
+  var all = document.querySelectorAll('.scr');
+  for (var i=0;i<all.length;i++) all[i].classList.toggle('on', all[i].id===id);
+  syncNav();
+  var el = $(id);
+  if (el) el.scrollTop = 0;
+  var rc = el && el.querySelector('.recap');
+  if (rc) rc.scrollTop = 0;
+}
+function syncNav(){
+  $('jLv1').classList.toggle('on', $('scrLv1').classList.contains('on') || $('scrLv1End').classList.contains('on'));
+  $('jLv2').classList.toggle('on', $('scrLv2').classList.contains('on') || $('scrLv2End').classList.contains('on'));
+  $('jEnd').classList.toggle('on', $('scrEnd').classList.contains('on'));
+
+  /* 只在答题的那两屏露出暂停/讲评键 —— 关卡选择页上它俩没用，只会添乱 */
+  var playing = $('scrLv1').classList.contains('on') || $('scrLv2').classList.contains('on');
+  ['pauseBtn','reviewBtn'].forEach(function(id){
+    var b = $(id);
+    if (b) b.style.display = playing ? '' : 'none';
+  });
+}
+
+/* 「立刻下一步」在自动模式下是"提前走"，在讲评模式下就是唯一的走法 */
+function updateNextLabels(){
+  var last1 = (S.L1.step === 3);
+  $('l1Next').textContent = S.review
+    ? (last1 ? '看结算' : '下一题')
+    : (last1 ? '立刻看结算' : '立刻下一步');
+  var last2 = (S.L2.turn >= 5);
+  $('l2Next').textContent = last2 ? '看结算' : '下一句';
+}
+function goLv1(){ setPause(false); l1Reset(); show('scrLv1'); }
+function goLv2(){ setPause(false); l2Reset(); show('scrLv2'); }
+function goEnd(){ setPause(false); tmClear(); show('scrEnd'); }
+function goHome(){ setPause(false); tmClear(); show('scrHome'); }
+
+/* ══════════════════════════════════════════════════════════
+   两 套 题 的 切 换
+   顶栏「甲卷 / 乙卷」按钮，第一关结算页也有一个 —— 两组比拼时点一下换题。
+   ══════════════════════════════════════════════════════════ */
+function applySet(){
+  SET  = SETS1[S.set];
+  SET2 = SETS2[S.set];
+  paintSet();
+}
+
+function paintSet(){
+  var tags = [[ 'setBtn', SET.name ],
+              [ 'l1Set',  SET.name + ' · ' + SET.desc ],
+              [ 'e1Set',  SET.name + ' · ' + SET.desc ],
+              [ 'l2Set',  SET2.name ],
+              [ 'e2Set',  SET2.name ]];
+  tags.forEach(function(t){
+    var el = $(t[0]);
+    if (el) el.textContent = t[1];
+  });
+}
+
+/* 换套题 = 换一套完整的第一关 + 第二关，从原处重新开始 */
+function swapSet(){
+  S.set = 1 - S.set;
+  applySet();
+  setPause(false);
+  if ($('scrLv2').classList.contains('on') || $('scrLv2End').classList.contains('on')){
+    l2Reset(); show('scrLv2');
+  } else {
+    l1Reset(); show('scrLv1');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   第 一 关 · 同一道题，两份打乱的选项
+   两个人看的是同一道题、同样的四个选项，但排列顺序不一样 ——
+   照着旁边那位的位置抄，抄到的多半是另一个坑。
+   ══════════════════════════════════════════════════════════ */
+var PL = { L:'左同学', R:'右同学' };
+
+/* 这一边第 slot 个位置上，摆的是原题里的第几个选项 */
+function ordOf(side, slot){
+  var p = SET.ordR[S.L1.step];
+  return (side === 'R') ? p[slot] : slot;
+}
+/* 这一边第 slot 个位置上的那个选项 */
+function optAt(side, slot){
+  return SET.steps[S.L1.step].opts[ordOf(side, slot)];
+}
+
+function l1Reset(){
+  tmClear();
+  rvClear();
+  TM.armed = false;                /* 新的一局 —— 退回"第一题按一次开始" */
+  S.L1 = { step:0, locked:false,
+           L:{gap:50,pick:null,over:false,log:[]},
+           R:{gap:50,pick:null,over:false,log:[]} };
+  paintL1();
+}
+
+function paintL1(){
+  var st = S.L1, d = SET.steps[st.step];
+
+  $('l1Step').textContent = '第 ' + (st.step+1) + ' 步 / 共 4 步';
+  $('l1Key').textContent  = d.k;
+  $('l1Tip').textContent  = '这一步要说的是 —— ' + d.k;
+
+  /* 题面只有一份 —— 两个同学看的是同一道题 */
+  $('l1Scene').textContent = SET.case;
+  $('l1Ask').textContent   = d.ask;
+
+  /* 两边的名签。各栏的选项顺序不同，所以下面两条赛道的排列也对不上 */
+  $('l1NameL').textContent = PL.L;
+  $('l1NameR').textContent = PL.R;
+
+  $('trkR').style.display = S.solo ? 'none' : '';
+  $('l1Tracks').className = 'tracks' + (S.solo ? ' solo' : '');
+
+  function addOpt(side, box, slot){
+    var o = optAt(side, slot);
+    var b = document.createElement('button');
+    b.className = 'opt';
+    b.type = 'button';
+    var kb = document.createElement('span');
+    kb.className = 'kb';
+    kb.textContent = side === 'L' ? KEYL[slot] : KEYR[slot];
+    var tx = document.createElement('span');
+    tx.className = 'tx';
+    tx.textContent = o.t;
+    var mk = document.createElement('span');
+    mk.className = 'mk';
+    b.appendChild(kb); b.appendChild(tx); b.appendChild(mk);
+    b.addEventListener('click', function(){ pickL1(side, slot); });
+    box.appendChild(b);
+  }
+
+  ['L','R'].forEach(function(side){
+    var box = $('l1Opts'+side);
+    box.innerHTML = '';
+    box.scrollTop = 0;
+    box.classList.remove('done');
+    for (var slot=0; slot<4; slot++) addOpt(side, box, slot);
+  });
+
+  paintGap('L'); paintGap('R');
+  $('l1Fb').classList.remove('on');
+  updateNextLabels();
+
+  TM.pfx = 'tm1'; TM.onEnd = l1Expire; TM.pills = (st.step === 0);
+  tmReset();
+  $('scrLv1').scrollTop = 0;          /* 新的一步：先把题干露出来 */
+}
+
+function paintGap(side){
+  var g = S.L1[side].gap;
+  $('l1Bar'+side).style.width = clamp(g,0,100) + '%';
+  $('l1Bar'+side).style.background = barColor(g);
+  $('l1Num'+side).textContent = Math.round(g);
+}
+
+/* 点了就交卷 —— 这一边立刻锁死，改不了了。
+   两个人都交完才揭晓，所以谁也看不到"别人选了什么"再改自己的。 */
+function pickL1(side, slot){
+  var st = S.L1;
+  if (S.paused || st.locked || !TM.open) return;
+  if (side === 'L' && st.L.pick !== null) return;
+  if (side === 'R' && (S.solo || st.R.pick !== null)) return;
+
+  st[side].pick = slot;                       /* 记的是"位置"，判分时再换成选项 */
+  var box = $('l1Opts'+side);
+  box.classList.add('done');                  /* 灰掉另外三个，写明"你交卷了" */
+  box.children[slot].classList.add('sel');
+  for (var j=0;j<box.children.length;j++) box.children[j].disabled = true;
+
+  var ready = (st.L.pick !== null) && (S.solo || st.R.pick !== null);
+  if (ready) revealL1();
+}
+
+function l1Expire(){
+  var st = S.L1;
+  if (st.locked) return;
+  if (st.L.pick === null) st.L.over = true;
+  if (!S.solo && st.R.pick === null) st.R.over = true;
+  revealL1();
+}
+
+function revealL1(){
+  var st = S.L1, d = SET.steps[st.step];
+  if (st.locked) return;
+  st.locked = true;
+  tmClear();
+
+  var cols = $('l1FbC');
+  cols.innerHTML = '';
+  cols.className = 'cols' + (S.solo ? ' solo' : '');
+
+  var bestText = '';
+  for (var b=0;b<d.opts.length;b++) if (d.opts[b].ok === 'y') bestText = d.opts[b].t;
+
+  ['L','R'].forEach(function(side){
+    if (S.solo && side === 'R') return;
+    var p = st[side], chosen = -1;
+
+    if (p.over){
+      p.gap = clamp(p.gap + 10, 0, 100);
+      p.log.push({ k:d.k, pick:null, d:10, ok:'n', over:true, why:TO_L1 });
+    } else {
+      chosen = p.pick;
+      var o = optAt(side, chosen);
+      p.gap = clamp(p.gap + o.d, 0, 100);
+      p.log.push({ k:d.k, pick:o.t, d:o.d, ok:o.ok, over:false, why:o.why });
+    }
+    paintGap(side);
+
+    var box  = $('l1Opts'+side);
+    var opts = box.children;
+    box.classList.remove('done');            /* 揭晓了，撤回"交卷灰" */
+    for (var j=0;j<opts.length;j++){
+      opts[j].disabled = true;
+      opts[j].classList.remove('sel');
+      if (optAt(side, j).ok === 'y'){
+        opts[j].classList.add('y');
+        opts[j].querySelector('.mk').textContent = '✓';
+      }
+    }
+    if (chosen >= 0){
+      var el = opts[chosen], co = optAt(side, chosen);
+      el.classList.remove('y');
+      el.classList.add(co.ok);
+      el.querySelector('.mk').textContent = (co.ok==='y' ? '✓' : (co.ok==='h' ? '△' : '✗'));
+    }
+
+    /* 揭晓卡上写清"正确说法"—— 超时没开口的人，也能看到自己错过了哪一句 */
+    var lg = p.log[p.log.length-1];
+    var tag, delta, q;
+    if (lg.over){
+      tag = '<span style="color:#B23A1C">⏱ 超时，没选</span>';
+      delta = '+10';
+      q = '<div class="qt">你没开口。这一步的正确说法是：「' + bestText + '」</div>';
+    } else {
+      tag = lg.ok==='y' ? '<span style="color:#1F7A5E">✓ 这一步选对了</span>'
+          : lg.ok==='h' ? '<span style="color:#8A5A08">△ 方向对了，但差一点</span>'
+          : '<span style="color:#B23A1C">✗ 踩到了这个坑</span>';
+      delta = (lg.d>0?'+':'') + lg.d;
+      q = '<div class="qt">你选的是：「' + lg.pick + '」</div>';
+    }
+    var cell = document.createElement('div');
+    cell.className = 'c';
+    cell.innerHTML = '<div class="hd">' + PL[side] + '　' + tag +
+                  '　<span style="color:var(--ink3);font-weight:700">隔阂值 ' + delta + '</span></div>' +
+                  q + '<div style="margin-top:6px">' + lg.why + '</div>';
+    cols.appendChild(cell);
+  });
+
+  $('l1FbT').innerHTML = '第 ' + (st.step+1) + ' 步 · ' + d.k + ' —— 揭晓';
+  $('l1Fb').classList.add('on');
+  $('l1Next').focus();
+  /* 看 5 秒就自动走 —— 想细看，按「⏸ 停住讲评」，或者提前切讲评模式 */
+  autoOrHint(nextL1, 'l1Auto', '秒后自动进入下一步 · 要细讲按「⏸ 停住讲评」');
+  updateNextLabels();
+}
+
+function nextL1(){
+  var st = S.L1;
+  if (!st.locked) return;
+  rvClear();
+  if (st.step === 3){ endL1(); return; }
+  st.step++;
+  st.locked = false;
+  st.L.pick = null; st.L.over = false;
+  st.R.pick = null; st.R.over = false;
+  paintL1();
+}
+
+function verdictGap(g){
+  if (g <= 10) return ['v-good','隔阂基本消掉了'];
+  if (g <= 30) return ['v-mid','有缓和，但没谈透'];
+  if (g <= 50) return ['v-bad','跟没说一样'];
+  return ['v-bad','比开口前更僵了'];
+}
+
+function endL1(){
+  var st = S.L1;
+  tmClear();
+  rvClear();
+  paintSet();
+  $('e1NameL').textContent = PL.L;
+  $('e1NameR').textContent = PL.R;
+  $('e1GapL').textContent = Math.round(st.L.gap);
+  $('e1GapR').textContent = Math.round(st.R.gap);
+
+  var vL = verdictGap(st.L.gap), vR = verdictGap(st.R.gap);
+  $('e1VerdL').className = 'verdict ' + vL[0]; $('e1VerdL').textContent = vL[1];
+  $('e1VerdR').className = 'verdict ' + vR[0]; $('e1VerdR').textContent = vR[1];
+  $('e1GapR').parentNode.style.display = S.solo ? 'none' : '';
+  document.querySelector('#scrLv1End .ends').style.gridTemplateColumns = S.solo ? '1fr' : '';
+
+  var w = $('e1Win');
+  var tail = '<small>这一局用的是' + SET.name + '（' + SET.desc + '）—— 两个人答的其实是同一道题，' +
+             '只是四个选项的顺序被换过了。两组比的时候换另一套题再走一遍：两套题的坑一模一样，' +
+             '比出来的才是「谁真的会用」。</small>';
+  if (S.solo){
+    w.innerHTML = '隔阂值 ' + Math.round(st.L.gap) + '　——　' +
+      (st.L.gap <= 10 ? '四步全走对了。' : '还有几处可以再想想。') +
+      '<small>单人模式：每个选项的"为什么"就是讲评点，可以逐条展开给学生看。</small>';
+  } else if (st.L.gap === st.R.gap){
+    w.innerHTML = '平局 —— 两个人的隔阂值都是 ' + Math.round(st.L.gap) + tail;
+  } else {
+    var win = st.L.gap < st.R.gap ? PL.L : PL.R;
+    w.innerHTML = win + ' 赢了这一关　（' + Math.round(Math.min(st.L.gap, st.R.gap)) +
+      ' 比 ' + Math.round(Math.max(st.L.gap, st.R.gap)) + '）' + tail;
+  }
+
+  var box = $('e1Recap'); box.innerHTML = '';
+  for (var s=0;s<4;s++){
+    var step = SET.steps[s];
+    var line = document.createElement('div'); line.className = 'rline';
+    var body = '<div class="st">第 ' + (s+1) + ' 步<br>' + step.k + '</div><div class="bd">';
+    ['L','R'].forEach(function(side){
+      if (S.solo && side === 'R') return;
+      var lg = S.L1[side].log[s];
+      if (!lg) return;
+      var cls = lg.over ? 'n' : (lg.ok==='y'?'y':(lg.ok==='h'?'h':'n'));
+      var lbl = lg.over ? '⏱ 超时' : (lg.ok==='y'?'✓ 对':(lg.ok==='h'?'△ 半对':'✗ 错'));
+      var pick = lg.over ? '<span style="color:#B23A1C">（超时，没开口）</span>'
+                         : '<span class="q">「' + lg.pick + '」</span>';
+      body += '<div style="margin-bottom:' + (side==='L' && !S.solo ? '10px' : '0') + '">' +
+              '<span style="font-weight:800;color:var(--' + side + ')">' + PL[side] + '</span>　' +
+              pick + '　<span class="vd ' + cls + '">' + lbl + '</span></div>';
+    });
+    body += '</div>';
+    line.innerHTML = body;
+    box.appendChild(line);
+  }
+
+  show('scrLv1End');
+}
+
+/* ══════════════════════════════════════════════════════════
+   第 二 关 · 左右分屏
+   ══════════════════════════════════════════════════════════ */
+function l2Reset(){
+  tmClear();
+  rvClear();
+  TM.armed = false;                /* 第二关自己也要"第一句按一次开始" */
+  S.L2 = { turn:0, lastScore:null, done:false,
+           A:{score:0,log:[]}, B:{score:0,log:[]} };
+  $('paneAName').textContent = SET2.cast.A;
+  $('paneBName').textContent = SET2.cast.B;
+  $('e2NameA').textContent   = SET2.cast.A;
+  $('e2NameB').textContent   = SET2.cast.B;
+  $('l2Chat').innerHTML = '';
+  addMsg('sys', SET2.intro);
+  paintL2();
+}
+
+function addMsg(kind, text, over){
+  var c = $('l2Chat');
+  var d = document.createElement('div');
+  d.className = 'msg ' + kind + (over ? ' over' : '');
+  if (kind === 'sys'){
+    d.innerHTML = '<div class="bub">' + text + '</div>';
+  } else {
+    var nm = (kind==='a') ? SET2.cast.A : SET2.cast.B;
+    d.innerHTML = '<div class="av">' + (kind==='a'?'A':'B') + '</div>' +
+                  '<div class="bub"><div class="nm">' + nm + '</div>' + text + '</div>';
+  }
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+
+function paintL2(){
+  var t = S.L2.turn, r = SET2.turn[t];
+  var isA = r.who === 'A';
+  S.L2.done = false;
+
+  $('l2Step').textContent = '第 ' + (t+1) + ' 句 / 共 6 句';
+
+  /* 先把两边的旧内容清掉，再各自画 —— 避免出现两个选项区 */
+  $('paneABody').innerHTML = '';
+  $('paneBBody').innerHTML = '';
+  paintPane('A', isA);
+  paintPane('B', !isA);
+
+  $('l2Fb').classList.remove('on');
+
+  TM.pfx = 'tm2'; TM.onEnd = l2Expire; TM.pills = (t === 0);
+  tmReset();
+  updateNextLabels();
+  $('scrLv2').scrollTop = 0;          /* 新的一句：先把聊天记录和选项露出来 */
+}
+
+/* active 的那一边亮起来并弹出选项；另一边写「等对方说完」 */
+function paintPane(side, active){
+  var pane = $('pane'+side), body = $('pane'+side+'Body');
+  var st = (side==='A') ? S.L2.A : S.L2.B;
+  $('pane'+side+'Score').textContent = st.score + ' 分';
+  pane.className = 'pane ' + side + (active ? ' act' : '');
+
+  if (!active){
+    var w = document.createElement('div');
+    w.className = 'wait';
+    w.innerHTML = '<div class="wi">…</div>' +
+      '<div class="wt">等 <b>小 ' + (side==='A' ? 'A' : 'B') + '</b> 说完</div>' +
+      '<div class="ws">轮到你的时候，这一边才会亮起来</div>';
+    body.appendChild(w);
+    return;
+  }
+
+  var t = S.L2.turn, r = SET2.turn[t];
+
+  var y = document.createElement('div');
+  y.className = 'yours';
+  var yt = document.createElement('span');
+  yt.className = 't';
+  yt.textContent = '轮到你 —— 你要说：';
+  y.appendChild(yt);
+
+  /* 上一句的"余温"：决定这一句好不好接 */
+  if (t > 0 && S.L2.lastScore !== null){
+    var ls = S.L2.lastScore, pre = (side==='A') ? '小 B' : '小 A';
+    var mood = ls >= 15  ? ['m-soft', '对方「' + pre + '」听进去了，语气软了']
+             : ls > 0    ? ['m-ok',   '对方「' + pre + '」还算平静']
+             : ls === 0  ? ['m-ok',   '对方「' + pre + '」没什么反应']
+             : ls > -12  ? ['m-hard', '对方「' + pre + '」被激到了，防备起来了']
+                         : ['m-hard', '对方「' + pre + '」被彻底激到了，不想谈了'];
+    var m = document.createElement('span');
+    m.className = 'mood ' + mood[0];
+    m.textContent = mood[1];
+    y.appendChild(m);
+    body.appendChild(y);
+
+    if (ls < 0){
+      var wn = document.createElement('div');
+      wn.className = 'warnline';
+      wn.innerHTML = '他憋着火呢 —— 你这一句要是也跟着冲，扣分翻倍。这个时候说的好话，也最算数。';
+      body.appendChild(wn);
+    }
+  } else {
+    body.appendChild(y);
+  }
+
+  var box = document.createElement('div');
+  box.className = 'picks';
+  r.opts.forEach(function(o,i){
+    var b = document.createElement('button');
+    b.className = 'pick';
+    b.type = 'button';
+    var kb = document.createElement('span');
+    kb.className = 'kb';
+    kb.textContent = (side==='A') ? KEYL[i] : KEYR[i];
+    var tx = document.createElement('span');
+    tx.className = 'tx';
+    tx.textContent = o.t;
+    var mk = document.createElement('span');
+    mk.className = 'mk';
+    b.appendChild(kb); b.appendChild(tx); b.appendChild(mk);
+    b.addEventListener('click', function(){ pickL2(i); });
+    box.appendChild(b);
+  });
+  body.appendChild(box);
+}
+
+function pickL2(i){
+  if (S.paused || S.L2.done || !TM.open) return;
+  l2Resolve(i, false);
+}
+
+function l2Expire(){
+  if (S.L2.done) return;
+  l2Resolve(-1, true);
+}
+
+function l2Resolve(i, over){
+  var t = S.L2.turn, r = SET2.turn[t];
+  var isA = r.who === 'A';
+  var o = over ? null : r.opts[i];
+  var delta, pen = 0;
+
+  S.L2.done = true;
+  tmClear();
+
+  if (over){
+    delta = -10;                       /* 超时按说错一句算，不再叠加"火上浇油" */
+  } else {
+    var harsh = (S.L2.lastScore !== null && S.L2.lastScore < 0);
+    pen = (harsh && o.s < 0) ? -5 : 0;
+    delta = o.s + pen;
+  }
+
+  addMsg(isA ? 'a' : 'b', over ? '（沉默，没有接话）' : o.t, over);
+
+  var entry = { o:o, d:delta, pen:pen, over:over };
+  if (isA){ S.L2.A.score += delta; S.L2.A.log.push(entry); }
+  else    { S.L2.B.score += delta; S.L2.B.log.push(entry); }
+  S.L2.lastScore = delta;
+
+  $('paneAScore').textContent = S.L2.A.score + ' 分';
+  $('paneBScore').textContent = S.L2.B.score + ' 分';
+
+  var box = l2PicksBox();
+  if (box){
+    for (var j=0;j<box.children.length;j++){
+      box.children[j].disabled = true;
+      if (r.opts[j].ok === 'y'){
+        box.children[j].classList.add('y');
+        box.children[j].querySelector('.mk').textContent = '✓';
+      }
+    }
+    if (!over){
+      box.children[i].classList.remove('y');
+      box.children[i].classList.add(o.ok);
+      box.children[i].querySelector('.mk').textContent = (o.ok==='y'?'✓':(o.ok==='h'?'△':'✗'));
+    }
+  }
+
+  var who = isA ? '小 A' : '小 B';
+  if (over){
+    $('l2FbT').innerHTML = who + '　<span style="color:#B23A1C">⏱ 超时，没接</span>' +
+      '　<span style="color:var(--ink3);font-weight:700">沟通分 −10</span>';
+    $('l2FbC').innerHTML = TO_L2 +
+      (t < 5 ? '<br><br><b style="color:var(--ink)">下一句轮到对方。你会看到他那边的气氛变得很难接 —— ' +
+               '这是你这次沉默的直接后果。</b>' : '');
+  } else {
+    var tag = o.ok==='y' ? '<span style="color:#1F7A5E">✓ 这句说得好</span>'
+            : o.ok==='h' ? '<span style="color:#8A5A08">△ 方向对，差一点</span>'
+            : '<span style="color:#B23A1C">✗ 踩坑了</span>';
+    $('l2FbT').innerHTML = who + '　' + tag +
+      '　<span style="color:var(--ink3);font-weight:700">沟通分 ' +
+      (delta>0?'+':'') + delta + (pen ? '（含火上浇油 −5）' : '') + '</span>';
+    $('l2FbC').innerHTML = o.why +
+      (pen ? '<br><br><b style="color:#B23A1C">对方上一句已经被你惹到了，你这一句还在加码 —— ' +
+             '所以这一步不只扣 ' + o.s + '，而是 ' + delta + '。</b>' : '') +
+      (t < 5 ? '<br><br><b style="color:var(--ink)">下一句轮到对方 —— 他那一边会亮起来，' +
+               '你自己这边会显示你这一句的"余温"。</b>' : '');
+  }
+
+  $('l2Fb').classList.add('on');
+  /* 反馈卡在选项下面 —— 滚下去让它露出来，别让老师错过解析 */
+  $('l2Fb').scrollIntoView({block:'nearest',behavior:'smooth'});
+  /* 5 秒后自动轮到对方；讲评模式下就停在这儿，等老师按「下一句」 */
+  autoOrHint(nextL2, 'l2Auto', '秒后自动轮到对方 · 要细讲按「⏸ 停住讲评」');
+  updateNextLabels();
+}
+
+function nextL2(){
+  if (!S.L2.done) return;
+  rvClear();
+  if (S.L2.turn >= 5){ endL2(); return; }
+  S.L2.turn++;
+  paintL2();
+}
+
+function tier(s){
+  if (s >= 50) return ['v-good','很稳'];
+  if (s >= 25) return ['v-mid','基本合格'];
+  if (s >= 0)  return ['v-mid','勉强及格'];
+  return ['v-bad','几句话把关系推远了'];
+}
+
+function endL2(){
+  var a = S.L2.A.score, b = S.L2.B.score;
+  tmClear();
+  rvClear();
+  $('e2ScoreA').textContent = a;
+  $('e2ScoreB').textContent = b;
+  var ta = tier(a), tb = tier(b);
+  $('e2VerdA').className = 'verdict ' + ta[0]; $('e2VerdA').textContent = ta[1];
+  $('e2VerdB').className = 'verdict ' + tb[0]; $('e2VerdB').textContent = tb[1];
+
+  var e = $('e2Ending'), z = SET2.end;
+  if (a >= 40 && b >= 40){
+    e.innerHTML = z.good + '<small>' + z.goodS + '</small>';
+  } else if (a <= 0 && b <= 0){
+    e.innerHTML = z.bad + '<small>' + z.badS + '</small>';
+  } else {
+    e.innerHTML = z.mid + '<small>' + z.midS + '</small>';
+  }
+
+  var box = $('e2Recap'); box.innerHTML = '';
+  var idx = { A:0, B:0 };
+  SET2.turn.forEach(function(r, t){
+    var isA = r.who === 'A';
+    var L = isA ? S.L2.A.log[idx.A++] : S.L2.B.log[idx.B++];
+    if (!L) return;
+    var line = document.createElement('div'); line.className = 'rline';
+    var head = '<div class="st">第 ' + (t+1) + ' 句<br><span style="color:var(--' + r.who + ')">' +
+               (isA?'小A':'小B') + '</span><br><span style="color:' +
+               (L.d>0?'#1F7A5E':L.d<0?'#B23A1C':'var(--ink3)') + ';font-weight:800">' +
+               (L.d>0?'+':'') + L.d + '</span></div>';
+
+    if (L.over){
+      line.innerHTML = head +
+        '<div class="bd"><div class="q" style="color:#B23A1C">（超时，没有接话）</div>' +
+        '<div class="vd n">⏱ 超时</div>' +
+        '<div style="color:var(--ink2);margin-top:4px">' + TO_L2 + '</div></div>';
+    } else {
+      var o = L.o;
+      var cls = o.ok==='y'?'y':(o.ok==='h'?'h':'n');
+      var lbl = o.ok==='y'?'✓ 对':(o.ok==='h'?'△ 半对':'✗ 错');
+      line.innerHTML = head +
+        '<div class="bd"><div class="q">「' + o.t + '」</div>' +
+        '<div class="vd ' + cls + '">' + lbl +
+          (L.pen ? '　<span style="color:#B23A1C">（火上浇油，多扣 5）</span>' : '') + '</div>' +
+        '<div style="color:var(--ink2);margin-top:4px">' + o.why + '</div></div>';
+    }
+    box.appendChild(line);
+  });
+
+  show('scrLv2End');
+}
+
+/* ══════════════════════════════════════════════════════════
+   键 盘：谁说话就只认谁的那半边
+   ══════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', function(ev){
+  if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  var tag = (ev.target && ev.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  var k = ev.key;
+  var onL1 = $('scrLv1').classList.contains('on');
+  var onL2 = $('scrLv2').classList.contains('on');
+
+  /* 空格 / Esc = 暂停 ↔ 继续（讲评时手不用离开屏幕就能叫停） */
+  if ((k === ' ' || k === 'Escape') && (onL1 || onL2)){
+    ev.preventDefault();
+    setPause(!S.paused);
+    return;
+  }
+  if (S.paused) return;
+
+  /* 关卡选择：回车 = 直接开始第一关（焦点在按钮上时交给按钮自己） */
+  if ($('scrHome').classList.contains('on')){
+    if (k === 'Enter' && tag !== 'BUTTON'){ ev.preventDefault(); goLv1(); }
+    return;
+  }
+
+  /* Enter：第一题还没起跑时=开始计时；已揭晓时=下一步 */
+  if (k === 'Enter'){
+    if (onL1){
+      if (S.L1.locked){ ev.preventDefault(); nextL1(); return; }
+      if (!TM.armed && TM.sec > 0){ ev.preventDefault(); tmStart(false); return; }
+    }
+    if (onL2){
+      if (S.L2.done){ ev.preventDefault(); nextL2(); return; }
+      if (!TM.armed && TM.sec > 0){ ev.preventDefault(); tmStart(false); return; }
+    }
+    return;
+  }
+
+  if (onL1){
+    var iL = KEYL.indexOf(k), iR = KEYR.indexOf(k);
+    if (iL >= 0){ ev.preventDefault(); pickL1('L', iL); return; }
+    if (iR >= 0 && !S.solo){ ev.preventDefault(); pickL1('R', iR); return; }
+  }
+  if (onL2 && !S.L2.done && !$('l2Fb').classList.contains('on')){
+    var who = SET2.turn[S.L2.turn].who;
+    var i = (who === 'A') ? KEYL.indexOf(k) : KEYR.indexOf(k);
+    if (i >= 0){ ev.preventDefault(); pickL2(i); }
+  }
+});
+
+/* ══════════════════════════════════════════════════════════
+   按 钮
+   ══════════════════════════════════════════════════════════ */
+$('jLv1').addEventListener('click', goLv1);
+$('jLv2').addEventListener('click', goLv2);
+$('jEnd').addEventListener('click', goEnd);
+
+$('pauseBtn').addEventListener('click', function(){ setPause(!S.paused); });
+$('maskResume').addEventListener('click', function(){ setPause(false); });
+$('reviewBtn').addEventListener('click', function(){ setReview(!S.review); });
+
+$('modeBtn').addEventListener('click', function(){
+  S.solo = !S.solo;
+  this.textContent = S.solo ? '单人模式' : '双人模式';
+  this.classList.toggle('on', S.solo);
+  if ($('scrLv1').classList.contains('on') || $('scrLv1End').classList.contains('on')){
+    l1Reset(); show('scrLv1');
+  }
+});
+
+$('resetBtn').addEventListener('click', function(){
+  setPause(false);
+  l1Reset(); l2Reset();
+  show('scrHome');
+});
+
+$('goLv1').addEventListener('click', goLv1);
+$('goLv2').addEventListener('click', goLv2);
+$('goEnd').addEventListener('click', goEnd);
+$('toLv2').addEventListener('click', goLv2);
+$('toEnd').addEventListener('click', goEnd);
+$('backHome1').addEventListener('click', goHome);
+$('backHome2').addEventListener('click', goHome);
+$('backHome3').addEventListener('click', goHome);
+
+/* 换题：顶栏一个，第一关结算页一个 */
+$('setBtn').addEventListener('click', swapSet);
+$('swapSet').addEventListener('click', swapSet);
+
+/* 揭晓那一行字，点一下就停住 —— 老师想把这段解析讲透的时候用 */
+['l1Auto','l2Auto'].forEach(function(id){
+  var el = $(id);
+  if (el) el.addEventListener('click', rvHold);
+});
+
+$('l1Next').addEventListener('click', nextL1);
+$('l2Next').addEventListener('click', nextL2);
+$('l1Hold').addEventListener('click', holdToggle);
+$('l2Hold').addEventListener('click', holdToggle);
+/* 还没起跑 = 「开始」；已经起跑 = 「重新计时」 */
+$('tm1Go').addEventListener('click', function(){ tmStart(TM.armed); });
+$('tm2Go').addEventListener('click', function(){ tmStart(TM.armed); });
+
+/* 幂等初始化 */
+applySet();
+l1Reset();
+l2Reset();
+show('scrHome');
+
+})();
+</script>
 </body>
 </html>
