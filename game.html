@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>非暴力沟通闯关 · 韧竹小站</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+  background: #fefaf4; color: #4a4038; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 顶部一条极窄的返回条 —— 不再放整套导航，把高度全留给游戏 */
+.topline {
+  height: 48px;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 18px;
+  background: rgba(254,250,244,0.97);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  font-size: 13px; letter-spacing: 1px;
+}
+.topline .back {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #6a9a6a; text-decoration: none; font-weight: 700;
+  padding: 6px 12px; border-radius: 10px;
+  transition: all 0.25s;
+}
+.topline .back:hover { background: rgba(125,184,138,0.1); color: #4a7a4a; }
+.topline .name { font-weight: 700; color: #4a4038; letter-spacing: 2px; }
+.topline .sp { flex: 1; }
+.topline .tip { font-size: 12px; color: #b8a898; letter-spacing: 2px; }
+.topline .full {
+  font-size: 12px; color: #9a8e80; text-decoration: none;
+  padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.06);
+  transition: all 0.25s;
+}
+.topline .full:hover { color: #6a9a6a; border-color: rgba(125,184,138,0.35); }
+
+iframe {
+  display: block; width: 100%; height: calc(100vh - 48px);
+  border: 0; background: #FFF8F1;
+}
+
+@media (max-width: 640px) {
+  .topline { gap: 8px; padding: 0 10px; }
+  .topline .tip { display: none; }
+  .topline .name { font-size: 12px; letter-spacing: 1px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topline">
+  <a class="back" href="index.html">🎋 韧竹小站</a>
+  <span class="name">非暴力沟通 · 闯关</span>
+  <span class="sp"></span>
+  <span class="tip">项目七 · 人际交往</span>
+  <a class="full" href="nvc.html" target="_blank" rel="noopener">全屏打开 ↗</a>
+</div>
+
+<iframe src="nvc.html" title="非暴力沟通闯关"></iframe>
+
+</body>
+</html>
